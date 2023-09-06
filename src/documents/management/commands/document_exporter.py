@@ -26,6 +26,7 @@ from guardian.models import UserObjectPermission
 from documents.file_handling import delete_empty_directories
 from documents.file_handling import generate_filename
 from documents.models import Correspondent
+from documents.models import LegalEntity
 from documents.models import Document
 from documents.models import DocumentType
 from documents.models import Note
@@ -208,13 +209,15 @@ class Command(BaseCommand):
             if x.is_file():
                 self.files_in_export_dir.add(x.resolve())
 
-        # 2. Create manifest, containing all correspondents, types, tags, storage paths
+        # 2. Create manifest, containing all correspondents, legal entities, types, tags, storage paths
         # note, documents and ui_settings
         with transaction.atomic():
             manifest = json.loads(
                 serializers.serialize("json", Correspondent.objects.all()),
             )
 
+            manifest += json.loads(serializers.serialize("json", LegalEntity.objects.all()))
+            
             manifest += json.loads(serializers.serialize("json", Tag.objects.all()))
 
             manifest += json.loads(

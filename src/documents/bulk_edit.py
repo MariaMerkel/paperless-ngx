@@ -3,6 +3,7 @@ import itertools
 from django.db.models import Q
 
 from documents.models import Correspondent
+from documents.models import LegalEntity
 from documents.models import Document
 from documents.models import DocumentType
 from documents.models import StoragePath
@@ -18,6 +19,18 @@ def set_correspondent(doc_ids, correspondent):
     qs = Document.objects.filter(Q(id__in=doc_ids) & ~Q(correspondent=correspondent))
     affected_docs = [doc.id for doc in qs]
     qs.update(correspondent=correspondent)
+
+    bulk_update_documents.delay(document_ids=affected_docs)
+
+    return "OK"
+
+def set_legal_entity(doc_ids, legal_entity):
+    if legal_entity:
+        legal_entity = LegalEntity.objects.get(id=legal_entity)
+
+    qs = Document.objects.filter(Q(id__in=doc_ids) & ~Q(legal_entity=legal_entity))
+    affected_docs = [doc.id for doc in qs]
+    qs.update(legal_entity=legal_entity)
 
     bulk_update_documents.delay(document_ids=affected_docs)
 

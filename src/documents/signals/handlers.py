@@ -110,6 +110,68 @@ def set_correspondent(
             document.correspondent = selected
             document.save(update_fields=("correspondent",))
 
+def set_legal_entity(
+    sender,
+    document: Document,
+    logging_group=None,
+    classifier: Optional[DocumentClassifier] = None,
+    replace=False,
+    use_first=True,
+    suggest=False,
+    base_url=None,
+    color=False,
+    **kwargs,
+):
+    if document.legal_entity and not replace:
+        return
+
+    potential_legal_entities = matching.match_legalentities(document, classifier)
+
+    potential_count = len(potential_legal_entities)
+    selected = potential_legal_entities[0] if potential_legal_entities else None
+    if potential_count > 1:
+        if use_first:
+            logger.debug(
+                f"Detected {potential_count} potential legal entities, "
+                f"so we've opted for {selected}",
+                extra={"group": logging_group},
+            )
+        else:
+            logger.debug(
+                f"Detected {potential_count} potential legal entities, "
+                f"not assigning any legal entity",
+                extra={"group": logging_group},
+            )
+            return
+
+    if selected or replace:
+        if suggest:
+            if base_url:
+                print(
+                    termcolors.colorize(str(document), fg="green")
+                    if color
+                    else str(document),
+                )
+                print(f"{base_url}/documents/{document.pk}")
+            else:
+                print(
+                    (
+                        termcolors.colorize(str(document), fg="green")
+                        if color
+                        else str(document)
+                    )
+                    + f" [{document.pk}]",
+                )
+            print(f"Suggest legal entity {selected}")
+        else:
+            logger.info(
+                f"Assigning legal entity {selected} to {document}",
+                extra={"group": logging_group},
+            )
+
+            document.legal_entity = selected
+            document.save(update_fields=("legal_entity",))
+
 
 def set_document_type(
     sender,

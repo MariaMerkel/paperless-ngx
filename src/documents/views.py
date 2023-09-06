@@ -73,15 +73,18 @@ from .data_models import ConsumableDocument
 from .data_models import DocumentMetadataOverrides
 from .data_models import DocumentSource
 from .filters import CorrespondentFilterSet
+from .filters import LegalEntityFilterSet
 from .filters import DocumentFilterSet
 from .filters import DocumentTypeFilterSet
 from .filters import StoragePathFilterSet
 from .filters import TagFilterSet
 from .matching import match_correspondents
+from .matching import match_legalentities
 from .matching import match_document_types
 from .matching import match_storage_paths
 from .matching import match_tags
 from .models import Correspondent
+from .models import LegalEntity
 from .models import Document
 from .models import DocumentType
 from .models import Note
@@ -95,6 +98,7 @@ from .serialisers import AcknowledgeTasksViewSerializer
 from .serialisers import BulkDownloadSerializer
 from .serialisers import BulkEditSerializer
 from .serialisers import CorrespondentSerializer
+from .serialisers import LegalEntitySerializer
 from .serialisers import DocumentListSerializer
 from .serialisers import DocumentSerializer
 from .serialisers import DocumentTypeSerializer
@@ -190,6 +194,31 @@ class CorrespondentViewSet(ModelViewSet, PassUserMixin):
         "last_correspondence",
     )
 
+class LegalEntityViewSet(ModelViewSet, PassUserMixin):
+    model = LegalEntity
+
+    queryset = LegalEntity.objects.annotate(
+        document_count=Count("documents"),
+        last_correspondence=Max("documents__created"),
+    ).order_by(Lower("name"))
+
+    serializer_class = LegalEntitySerializer
+    pagination_class = StandardPagination
+    permission_classes = (IsAuthenticated, PaperlessObjectPermissions)
+    filter_backends = (
+        DjangoFilterBackend,
+        OrderingFilter,
+        ObjectOwnedOrGrantedPermissionsFilter,
+    )
+    filterset_class = LegalEntityFilterSet
+    ordering_fields = (
+        "name",
+        "matching_algorithm",
+        "match",
+        "document_count",
+        "last_correspondence",
+    )
+
 
 class TagViewSet(ModelViewSet, PassUserMixin):
     model = Tag
@@ -254,11 +283,12 @@ class DocumentViewSet(
         ObjectOwnedOrGrantedPermissionsFilter,
     )
     filterset_class = DocumentFilterSet
-    search_fields = ("title", "correspondent__name", "content")
+    search_fields = ("title", "correspondent__name", "legal_entity__name", "content")
     ordering_fields = (
         "id",
         "title",
         "correspondent__name",
+        "legal_entity__name",
         "document_type__name",
         "created",
         "modified",
@@ -434,6 +464,9 @@ class DocumentViewSet(
             {
                 "correspondents": [
                     c.id for c in match_correspondents(doc, classifier, request.user)
+                ],
+                "legal_entities": [
+                    c.id for c in match_legalentities(doc, classifier, request.user)
                 ],
                 "tags": [t.id for t in match_tags(doc, classifier, request.user)],
                 "document_types": [
@@ -745,6 +778,7 @@ class PostDocumentView(GenericAPIView):
 
         doc_name, doc_data = serializer.validated_data.get("document")
         correspondent_id = serializer.validated_data.get("correspondent")
+        legal_entity_id = serializer.validated_data.get("legal_entity")
         document_type_id = serializer.validated_data.get("document_type")
         tag_ids = serializer.validated_data.get("tags")
         title = serializer.validated_data.get("title")
@@ -771,6 +805,7 @@ class PostDocumentView(GenericAPIView):
             filename=doc_name,
             title=title,
             correspondent_id=correspondent_id,
+            legal_entity_id=legal_entity_id,
             document_type_id=document_type_id,
             tag_ids=tag_ids,
             created=created,
@@ -803,6 +838,11 @@ class SelectionDataView(GenericAPIView):
             ),
         )
 
+        legal_entities = LegalEntity.objects.annotate(
+            document_count=Count(
+                Case(When(documents__id__in=ids, then=1), output_field=IntegerField()),
+            ),
+        )
         tags = Tag.objects.annotate(
             document_count=Count(
                 Case(When(documents__id__in=ids, then=1), output_field=IntegerField()),
@@ -826,6 +866,10 @@ class SelectionDataView(GenericAPIView):
                 "selected_correspondents": [
                     {"id": t.id, "document_count": t.document_count}
                     for t in correspondents
+                ],
+                "selected_legal_entities": [
+                    {"id": t.id, "document_count": t.document_count}
+                    for t in legal_entities
                 ],
                 "selected_tags": [
                     {"id": t.id, "document_count": t.document_count} for t in tags

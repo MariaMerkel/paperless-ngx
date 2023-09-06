@@ -2,6 +2,7 @@ from django.contrib import admin
 from guardian.admin import GuardedModelAdmin
 
 from .models import Correspondent
+from .models import LegalEntity
 from .models import Document
 from .models import DocumentType
 from .models import Note
@@ -13,6 +14,11 @@ from .models import Tag
 
 
 class CorrespondentAdmin(GuardedModelAdmin):
+    list_display = ("name", "match", "matching_algorithm")
+    list_filter = ("matching_algorithm",)
+    list_editable = ("match", "matching_algorithm")
+
+class LegalEntityAdmin(GuardedModelAdmin):
     list_display = ("name", "match", "matching_algorithm")
     list_filter = ("matching_algorithm",)
     list_editable = ("match", "matching_algorithm")
@@ -32,6 +38,7 @@ class DocumentTypeAdmin(GuardedModelAdmin):
 
 class DocumentAdmin(GuardedModelAdmin):
     search_fields = ("correspondent__name", "title", "content", "tags__name")
+    # TODO: add legal entity name to search fields
     readonly_fields = (
         "added",
         "modified",
@@ -133,6 +140,7 @@ class NotesAdmin(GuardedModelAdmin):
 
 
 admin.site.register(Correspondent, CorrespondentAdmin)
+admin.site.register(LegalEntity, LegalEntityAdmin)
 admin.site.register(Tag, TagAdmin)
 admin.site.register(DocumentType, DocumentTypeAdmin)
 admin.site.register(Document, DocumentAdmin)

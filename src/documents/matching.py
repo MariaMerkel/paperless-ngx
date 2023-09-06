@@ -3,6 +3,7 @@ import re
 
 from documents.classifier import DocumentClassifier
 from documents.models import Correspondent
+from documents.models import LegalEntity
 from documents.models import Document
 from documents.models import DocumentType
 from documents.models import MatchingModel
@@ -44,6 +45,28 @@ def match_correspondents(document: Document, classifier: DocumentClassifier, use
         ),
     )
 
+def match_legalentities(document: Document, classifier: DocumentClassifier, user=None):
+    pred_id = classifier.predict_legal_entity(document.content) if classifier else None
+
+    if user is None and document.owner is not None:
+        user = document.owner
+
+    if user is not None:
+        legal_entities = get_objects_for_user_owner_aware(
+            user,
+            "documents.view_legal_entity",
+            LegalEntity,
+        )
+    else:
+        legal_entities = LegalEntity.objects.all()
+
+    return list(
+        filter(
+            lambda o: matches(o, document)
+            or (o.pk == pred_id and o.matching_algorithm == MatchingModel.MATCH_AUTO),
+            legal_entities,
+        ),
+    )
 
 def match_document_types(document: Document, classifier: DocumentClassifier, user=None):
     pred_id = classifier.predict_document_type(document.content) if classifier else None

@@ -5,6 +5,7 @@ from django_filters.rest_framework import FilterSet
 from rest_framework_guardian.filters import ObjectPermissionsFilter
 
 from .models import Correspondent
+from .models import LegalEntity
 from .models import Document
 from .models import DocumentType
 from .models import Log
@@ -22,6 +23,10 @@ class CorrespondentFilterSet(FilterSet):
         model = Correspondent
         fields = {"name": CHAR_KWARGS}
 
+class LegalEntityFilterSet(FilterSet):
+    class Meta:
+        model = LegalEntity
+        fields = {"name": CHAR_KWARGS}
 
 class TagFilterSet(FilterSet):
     class Meta:
@@ -97,6 +102,8 @@ class DocumentFilterSet(FilterSet):
 
     correspondent__id__none = ObjectFilter(field_name="correspondent", exclude=True)
 
+    legal_entity__id__none = ObjectFilter(field_name="legal_entity", exclude=True)
+
     document_type__id__none = ObjectFilter(field_name="document_type", exclude=True)
 
     storage_path__id__none = ObjectFilter(field_name="storage_path", exclude=True)
@@ -121,6 +128,9 @@ class DocumentFilterSet(FilterSet):
             "correspondent": ["isnull"],
             "correspondent__id": ID_KWARGS,
             "correspondent__name": CHAR_KWARGS,
+            "legal_entity": ["isnull"],
+            "legal_entity__id": ID_KWARGS,
+            "legal_entity__name": CHAR_KWARGS,
             "tags__id": ID_KWARGS,
             "tags__name": CHAR_KWARGS,
             "document_type": ["isnull"],

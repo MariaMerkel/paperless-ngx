@@ -29,6 +29,7 @@ from .file_handling import create_source_path_directory
 from .file_handling import generate_unique_filename
 from .loggers import LoggingMixin
 from .models import Correspondent
+from .models import LegalEntity
 from .models import Document
 from .models import DocumentType
 from .models import FileInfo
@@ -115,6 +116,7 @@ class Consumer(LoggingMixin):
         self.filename = None
         self.override_title = None
         self.override_correspondent_id = None
+        self.override_legal_entity_id = None
         self.override_tag_ids = None
         self.override_document_type_id = None
         self.override_asn = None
@@ -275,6 +277,7 @@ class Consumer(LoggingMixin):
             kwargs={"pk": document.pk},
         )
         script_env["DOCUMENT_CORRESPONDENT"] = str(document.correspondent)
+        script_env["DOCUMENT_LEGAL_ENTITY"] = str(document.legal_entity)
         script_env["DOCUMENT_TAGS"] = str(
             ",".join(document.tags.all().values_list("name", flat=True)),
         )
@@ -291,6 +294,7 @@ class Consumer(LoggingMixin):
                     reverse("document-download", kwargs={"pk": document.pk}),
                     reverse("document-thumb", kwargs={"pk": document.pk}),
                     str(document.correspondent),
+                    str(document.legal_entity), # this would break compatibility but this won't be an issue in this case
                     str(",".join(document.tags.all().values_list("name", flat=True))),
                 ],
                 env=script_env,
@@ -316,6 +320,7 @@ class Consumer(LoggingMixin):
         override_filename=None,
         override_title=None,
         override_correspondent_id=None,
+        override_legal_entity_id=None,
         override_document_type_id=None,
         override_tag_ids=None,
         task_id=None,
@@ -331,6 +336,7 @@ class Consumer(LoggingMixin):
         self.filename = override_filename or self.path.name
         self.override_title = override_title
         self.override_correspondent_id = override_correspondent_id
+        self.override_legal_entity_id = override_legal_entity_id
         self.override_document_type_id = override_document_type_id
         self.override_tag_ids = override_tag_ids
         self.task_id = task_id or str(uuid.uuid4())
@@ -631,6 +637,11 @@ class Consumer(LoggingMixin):
         if self.override_correspondent_id:
             document.correspondent = Correspondent.objects.get(
                 pk=self.override_correspondent_id,
+            )
+
+        if self.override_legal_entity_id:
+            document.legal_entity = LegalEntity.objects.get(
+                pk=self.override_legal_entity_id,
             )
 
         if self.override_document_type_id:

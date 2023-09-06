@@ -24,6 +24,7 @@ from documents.permissions import set_permissions_for_object
 
 from . import bulk_edit
 from .models import Correspondent
+from .models import LegalEntity
 from .models import Document
 from .models import DocumentType
 from .models import MatchingModel
@@ -261,6 +262,26 @@ class CorrespondentSerializer(MatchingModelSerializer, OwnedObjectSerializer):
             "set_permissions",
         )
 
+class LegalEntitySerializer(MatchingModelSerializer, OwnedObjectSerializer):
+    last_correspondence = serializers.DateTimeField(read_only=True)
+
+    class Meta:
+        model = LegalEntity
+        fields = (
+            "id",
+            "slug",
+            "name",
+            "match",
+            "matching_algorithm",
+            "is_insensitive",
+            "document_count",
+            "last_correspondence",
+            "owner",
+            "permissions",
+            "user_can_change",
+            "set_permissions",
+        )
+
 
 class DocumentTypeSerializer(MatchingModelSerializer, OwnedObjectSerializer):
     class Meta:
@@ -378,6 +399,9 @@ class CorrespondentField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self):
         return Correspondent.objects.all()
 
+class LegalEntityField(serializers.PrimaryKeyRelatedField):
+    def get_queryset(self):
+        return LegalEntity.objects.all()
 
 class TagsField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self):
@@ -396,6 +420,7 @@ class StoragePathField(serializers.PrimaryKeyRelatedField):
 
 class DocumentSerializer(OwnedObjectSerializer, DynamicFieldsModelSerializer):
     correspondent = CorrespondentField(allow_null=True)
+    legal_entity = LegalEntityField(allow_null=True)
     tags = TagsField(many=True)
     document_type = DocumentTypeField(allow_null=True)
     storage_path = StoragePathField(allow_null=True)
@@ -449,6 +474,7 @@ class DocumentSerializer(OwnedObjectSerializer, DynamicFieldsModelSerializer):
         fields = (
             "id",
             "correspondent",
+            "legal_entity"
             "document_type",
             "storage_path",
             "title",
@@ -549,6 +575,7 @@ class BulkEditSerializer(DocumentListSerializer, SetPermissionsMixin):
     method = serializers.ChoiceField(
         choices=[
             "set_correspondent",
+            "set_legal_entity",
             "set_document_type",
             "set_storage_path",
             "add_tag",
@@ -578,6 +605,8 @@ class BulkEditSerializer(DocumentListSerializer, SetPermissionsMixin):
     def validate_method(self, method):
         if method == "set_correspondent":
             return bulk_edit.set_correspondent
+        if method == "set_legal_entity":
+            return bulk_edit.set_legal_entity
         elif method == "set_document_type":
             return bulk_edit.set_document_type
         elif method == "set_storage_path":
@@ -631,6 +660,18 @@ class BulkEditSerializer(DocumentListSerializer, SetPermissionsMixin):
                 raise serializers.ValidationError("Correspondent does not exist")
         else:
             raise serializers.ValidationError("correspondent not specified")
+    
+    def _validate_parameters_legal_entity(self, parameters):
+        if "legal_entity" in parameters:
+            legal_entity_id = parameters["legal_entity"]
+            if legal_entity_id is None:
+                return
+            try:
+                LegalEntity.objects.get(id=legal_entity_id)
+            except LegalEntity.DoesNotExist:
+                raise serializers.ValidationError("Legal entity does not exist")
+        else:
+            raise serializers.ValidationError("legal_entity not specified")
 
     def _validate_storage_path(self, parameters):
         if "storage_path" in parameters:
@@ -676,6 +717,8 @@ class BulkEditSerializer(DocumentListSerializer, SetPermissionsMixin):
 
         if method == bulk_edit.set_correspondent:
             self._validate_parameters_correspondent(parameters)
+        if method == bulk_edit.set_legal_entity:
+            self._validate_parameters_legal_entity(parameters)
         elif method == bulk_edit.set_document_type:
             self._validate_parameters_document_type(parameters)
         elif method == bulk_edit.add_tag or method == bulk_edit.remove_tag:
@@ -712,6 +755,14 @@ class PostDocumentSerializer(serializers.Serializer):
     correspondent = serializers.PrimaryKeyRelatedField(
         queryset=Correspondent.objects.all(),
         label="Correspondent",
+        allow_null=True,
+        write_only=True,
+        required=False,
+    )
+
+    legal_entity = serializers.PrimaryKeyRelatedField(
+        queryset=LegalEntity.objects.all(),
+        label="Legal entity",
         allow_null=True,
         write_only=True,
         required=False,
@@ -755,6 +806,12 @@ class PostDocumentSerializer(serializers.Serializer):
     def validate_correspondent(self, correspondent):
         if correspondent:
             return correspondent.id
+        else:
+            return None
+    
+    def validate_legal_entity(self, legal_entity):
+        if legal_entity:
+            return legal_entity.id
         else:
             return None
 
@@ -820,6 +877,7 @@ class StoragePathSerializer(MatchingModelSerializer, OwnedObjectSerializer):
             path.format(
                 title="title",
                 correspondent="correspondent",
+                legal_entity="legal_entity",
                 document_type="document_type",
                 created="created",
                 created_year="created_year",

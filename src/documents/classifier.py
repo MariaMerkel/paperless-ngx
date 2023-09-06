@@ -76,6 +76,7 @@ class DocumentClassifier:
         self.tags_binarizer = None
         self.tags_classifier = None
         self.correspondent_classifier = None
+        self.legal_entity_classifier = None
         self.document_type_classifier = None
         self.storage_path_classifier = None
 
@@ -102,6 +103,7 @@ class DocumentClassifier:
 
                         self.tags_classifier = pickle.load(f)
                         self.correspondent_classifier = pickle.load(f)
+                        self.legal_entity_classifier = pickle.load(f)
                         self.document_type_classifier = pickle.load(f)
                         self.storage_path_classifier = pickle.load(f)
                     except Exception as err:
@@ -136,6 +138,7 @@ class DocumentClassifier:
             pickle.dump(self.tags_classifier, f)
 
             pickle.dump(self.correspondent_classifier, f)
+            pickle.dump(self.legal_entity_classifier, f)
             pickle.dump(self.document_type_classifier, f)
             pickle.dump(self.storage_path_classifier, f)
 
@@ -153,6 +156,7 @@ class DocumentClassifier:
 
         labels_tags = []
         labels_correspondent = []
+        labels_legal_entity = []
         labels_document_type = []
         labels_storage_path = []
 
@@ -173,6 +177,13 @@ class DocumentClassifier:
                 y = cor.pk
             hasher.update(y.to_bytes(4, "little", signed=True))
             labels_correspondent.append(y)
+
+            y = -1
+            cor = doc.legal_entity
+            if cor and cor.matching_algorithm == MatchingModel.MATCH_AUTO:
+                y = cor.pk
+            hasher.update(y.to_bytes(4, "little", signed=True))
+            labels_legal_entity.append(y)
 
             tags = sorted(
                 tag.pk
@@ -211,15 +222,17 @@ class DocumentClassifier:
         # correspondents and types assigned, so -1 isnt part of labels_x, which
         # it usually is.
         num_correspondents = len(set(labels_correspondent) | {-1}) - 1
+        num_legal_entities = len(set(labels_legal_entity) | {-1}) - 1
         num_document_types = len(set(labels_document_type) | {-1}) - 1
         num_storage_paths = len(set(labels_storage_path) | {-1}) - 1
 
         logger.debug(
-            "{} documents, {} tag(s), {} correspondent(s), "
+            "{} documents, {} tag(s), {} correspondent(s), {} legal entit(y/ies)"
             "{} document type(s). {} storage path(es)".format(
                 docs_queryset.count(),
                 num_tags,
                 num_correspondents,
+                num_legal_entities,
                 num_document_types,
                 num_storage_paths,
             ),
@@ -285,6 +298,17 @@ class DocumentClassifier:
             self.correspondent_classifier = None
             logger.debug(
                 "There are no correspondents. Not training correspondent "
+                "classifier.",
+            )
+
+        if num_legal_entities > 0:
+            logger.debug("Training legal entity classifier...")
+            self.legal_entity_classifier = MLPClassifier(tol=0.01)
+            self.legal_entity_classifier.fit(data_vectorized, labels_legal_entity)
+        else:
+            self.legal_entity_classifier = None
+            logger.debug(
+                "There are no legal entities. Not training legal entity "
                 "classifier.",
             )
 
@@ -388,6 +412,17 @@ class DocumentClassifier:
             correspondent_id = self.correspondent_classifier.predict(X)
             if correspondent_id != -1:
                 return correspondent_id
+            else:
+                return None
+        else:
+            return None
+    
+    def predict_legal_entity(self, content: str) -> Optional[int]:
+        if self.legal_entity_classifier:
+            X = self.data_vectorizer.transform([self.preprocess_content(content)])
+            legal_entity_id = self.legal_entity_classifier.predict(X)
+            if legal_entity_id != -1:
+                return legal_entity_id
             else:
                 return None
         else:

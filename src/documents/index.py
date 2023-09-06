@@ -46,6 +46,9 @@ def get_schema():
         correspondent=TEXT(sortable=True),
         correspondent_id=NUMERIC(),
         has_correspondent=BOOLEAN(),
+        legal_entity=TEXT(sortable=True),
+        legal_entity_id=NUMERIC(),
+        has_legal_entity=BOOLEAN(),
         tag=KEYWORD(commas=True, scorable=True, lowercase=True),
         tag_id=KEYWORD(commas=True, scorable=True),
         has_tag=BOOLEAN(),
@@ -132,6 +135,9 @@ def update_document(writer: AsyncWriter, doc: Document):
         correspondent=doc.correspondent.name if doc.correspondent else None,
         correspondent_id=doc.correspondent.id if doc.correspondent else None,
         has_correspondent=doc.correspondent is not None,
+        legal_entity=doc.legal_entity.name if doc.legal_entity else None,
+        legal_entity_id=doc.legal_entity.id if doc.legal_entity else None,
+        has_legal_entity=doc.legal_entity is not None,
         tag=tags if tags else None,
         tag_id=tags_ids if tags_ids else None,
         has_tag=len(tags) > 0,
@@ -177,6 +183,7 @@ def remove_document_from_index(document):
 class DelayedQuery:
     param_map = {
         "correspondent": ("correspondent", ["id", "id__in", "id__none", "isnull"]),
+        "legal_entity": ("legal_entity", ["id", "id__in", "id__none", "isnull"]),
         "document_type": ("type", ["id", "id__in", "id__none", "isnull"]),
         "storage_path": ("path", ["id", "id__in", "id__none", "isnull"]),
         "owner": ("owner", ["id", "id__in", "id__none", "isnull"]),
@@ -280,6 +287,7 @@ class DelayedQuery:
             "added": "added",
             "title": "title",
             "correspondent__name": "correspondent",
+            "legal_entity__name": "legal_entity",
             "document_type__name": "type",
             "archive_serial_number": "asn",
             "num_notes": "num_notes",
@@ -350,7 +358,7 @@ class DelayedFullTextQuery(DelayedQuery):
     def _get_query(self):
         q_str = self.query_params["query"]
         qp = MultifieldParser(
-            ["content", "title", "correspondent", "tag", "type", "notes"],
+            ["content", "title", "correspondent", "legal_entity", "tag", "type", "notes"],
             self.searcher.ixreader.schema,
         )
         qp.add_plugin(DateParserPlugin(basedate=timezone.now()))

@@ -167,6 +167,14 @@ def generate_filename(
             else:
                 correspondent = no_value_default
 
+            if doc.legal_entity:
+                legal_entity = pathvalidate.sanitize_filename(
+                    doc.legal_entity.name,
+                    replacement_text="-",
+                )
+            else:
+                legal_entity = no_value_default
+
             if doc.document_type:
                 document_type = pathvalidate.sanitize_filename(
                     doc.document_type.name,
@@ -198,6 +206,7 @@ def generate_filename(
             path = filename_format.format(
                 title=pathvalidate.sanitize_filename(doc.title, replacement_text="-"),
                 correspondent=correspondent,
+                legal_entity=legal_entity,
                 document_type=document_type,
                 created=local_created.isoformat(),
                 created_year=local_created.strftime("%Y"),

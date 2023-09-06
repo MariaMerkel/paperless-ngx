@@ -19,6 +19,7 @@ class DocumentMetadataOverrides:
     filename: Optional[str] = None
     title: Optional[str] = None
     correspondent_id: Optional[int] = None
+    legal_entity_id = Optional[int] = None
     document_type_id: Optional[int] = None
     tag_ids: Optional[List[int]] = None
     created: Optional[datetime.datetime] = None
