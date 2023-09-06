@@ -92,6 +92,11 @@ class Correspondent(MatchingModel):
         verbose_name = _("correspondent")
         verbose_name_plural = _("correspondents")
 
+class LegalEntity(MatchingModel):
+    class Meta(MatchingModel.Meta):
+        verbose_name = _("legal_entity")
+        verbose_name_plural = _("legal_entities")
+
 
 class Tag(MatchingModel):
     color = models.CharField(_("color"), max_length=7, default="#a6cee3")
@@ -142,6 +147,15 @@ class Document(ModelWithOwner):
         related_name="documents",
         on_delete=models.SET_NULL,
         verbose_name=_("correspondent"),
+    )
+
+    legal_entity = models.ForeignKey(
+        LegalEntity,
+        blank=True,
+        null=True,
+        related_name="documents",
+        on_delete=models.SET_NULL,
+        verbose_name=_("legal_entity"),
     )
 
     storage_path = models.ForeignKey(
@@ -284,6 +298,8 @@ class Document(ModelWithOwner):
 
         if self.correspondent:
             res += f" {self.correspondent}"
+        if self.legal_entity:
+            res += f" (as {self.legal_entity})"
         if self.title:
             res += f" {self.title}"
         return res
@@ -496,6 +512,7 @@ class FileInfo:
         self,
         created=None,
         correspondent=None,
+        legal_entity=None,
         title=None,
         tags=(),
         extension=None,
@@ -504,6 +521,7 @@ class FileInfo:
         self.title = title
         self.extension = extension
         self.correspondent = correspondent
+        self.legal_entity = legal_entity
         self.tags = tags
 
     @classmethod
