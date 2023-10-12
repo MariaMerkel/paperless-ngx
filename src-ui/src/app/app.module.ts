@@ -21,6 +21,7 @@ import { DatePipe, registerLocaleData } from '@angular/common'
 import { NotFoundComponent } from './components/not-found/not-found.component'
 import { ConfirmDialogComponent } from './components/common/confirm-dialog/confirm-dialog.component'
 import { CorrespondentEditDialogComponent } from './components/common/edit-dialog/correspondent-edit-dialog/correspondent-edit-dialog.component'
+import { LegalEntityEditDialogComponent } from './components/common/edit-dialog/legalentity-edit-dialog/legalentity-edit-dialog.component'
 import { TagEditDialogComponent } from './components/common/edit-dialog/tag-edit-dialog/tag-edit-dialog.component'
 import { DocumentTypeEditDialogComponent } from './components/common/edit-dialog/document-type-edit-dialog/document-type-edit-dialog.component'
 import { TagComponent } from './components/common/tag/tag.component'
@@ -119,6 +120,7 @@ import localeSv from '@angular/common/locales/sv'
 import localeTr from '@angular/common/locales/tr'
 import localeUk from '@angular/common/locales/uk'
 import localeZh from '@angular/common/locales/zh'
+import { LegalEntityListComponent } from './components/manage/legalentity-list/legalentity-list.component'
 
 registerLocaleData(localeAr)
 registerLocaleData(localeBe)
@@ -161,11 +163,13 @@ function initializeApp(settings: SettingsService) {
     TagListComponent,
     DocumentTypeListComponent,
     CorrespondentListComponent,
+    LegalEntityListComponent,
     StoragePathListComponent,
     LogsComponent,
     SettingsComponent,
     NotFoundComponent,
     CorrespondentEditDialogComponent,
+    LegalEntityEditDialogComponent,
     ConfirmDialogComponent,
     TagEditDialogComponent,
     DocumentTypeEditDialogComponent,

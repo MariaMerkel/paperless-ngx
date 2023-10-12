@@ -11,6 +11,10 @@ export const FILTER_CORRESPONDENT = 3
 export const FILTER_HAS_CORRESPONDENT_ANY = 26
 export const FILTER_DOES_NOT_HAVE_CORRESPONDENT = 27
 
+export const FILTER_LEGAL_ENTITY = 36
+export const FILTER_HAS_LEGAL_ENTITY_ANY = 37
+export const FILTER_DOES_NOT_HAVE_LEGAL_ENTITY = 38
+
 export const FILTER_DOCUMENT_TYPE = 4
 export const FILTER_HAS_DOCUMENT_TYPE_ANY = 28
 export const FILTER_DOES_NOT_HAVE_DOCUMENT_TYPE = 29
@@ -66,6 +70,25 @@ export const FILTER_RULE_TYPES: FilterRuleType[] = [
     filtervar: 'archive_serial_number',
     datatype: 'number',
     multi: false,
+  },
+  {
+    id: FILTER_LEGAL_ENTITY,
+    filtervar: 'legal_entity__id',
+    isnull_filtervar: 'legal_entity__isnull',
+    datatype: 'legal_entity',
+    multi: false,
+  },
+  {
+    id: FILTER_HAS_LEGAL_ENTITY_ANY,
+    filtervar: 'legal_entity__id__in',
+    datatype: 'legal_entity',
+    multi: true,
+  },
+  {
+    id: FILTER_DOES_NOT_HAVE_LEGAL_ENTITY,
+    filtervar: 'legal_entity__id__none',
+    datatype: 'legal_entity',
+    multi: true,
   },
   {
     id: FILTER_CORRESPONDENT,

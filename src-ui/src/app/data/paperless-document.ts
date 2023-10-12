@@ -1,4 +1,5 @@
 import { PaperlessCorrespondent } from './paperless-correspondent'
+import { PaperlessLegalEntity } from './paperless-legalentity'
 import { PaperlessTag } from './paperless-tag'
 import { PaperlessDocumentType } from './paperless-document-type'
 import { Observable } from 'rxjs'
@@ -18,6 +19,10 @@ export interface PaperlessDocument extends ObjectWithPermissions {
   correspondent$?: Observable<PaperlessCorrespondent>
 
   correspondent?: number
+
+  legal_entity$?: Observable<PaperlessLegalEntity>
+
+  legal_entity?: number
 
   document_type$?: Observable<PaperlessDocumentType>
 

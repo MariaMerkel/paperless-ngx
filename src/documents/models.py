@@ -468,6 +468,9 @@ class SavedViewFilterRule(models.Model):
         (33, _("has owner in")),
         (34, _("does not have owner")),
         (35, _("does not have owner in")),
+        (36, _("legal entity is")),
+        (37, _("has legal entity in")),
+        (38, _("does not have legal entity in")),
     ]
 
     saved_view = models.ForeignKey(

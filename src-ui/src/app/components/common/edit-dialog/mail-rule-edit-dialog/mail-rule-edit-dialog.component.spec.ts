@@ -15,11 +15,13 @@ import { TagsComponent } from '../../input/tags/tags.component'
 import { SafeHtmlPipe } from 'src/app/pipes/safehtml.pipe'
 import { MailAccountService } from 'src/app/services/rest/mail-account.service'
 import { CorrespondentService } from 'src/app/services/rest/correspondent.service'
+import { LegalEntityService } from 'src/app/services/rest/legalentity.service'
 import { DocumentTypeService } from 'src/app/services/rest/document-type.service'
 import { of } from 'rxjs'
 import {
   MailAction,
   MailMetadataCorrespondentOption,
+  MailMetadataLegalEntityOption,
 } from 'src/app/data/paperless-mail-rule'
 
 describe('MailRuleEditDialogComponent', () => {
@@ -27,6 +29,7 @@ describe('MailRuleEditDialogComponent', () => {
   let fixture: ComponentFixture<MailRuleEditDialogComponent>
   let accountService: MailAccountService
   let correspondentService: CorrespondentService
+  let legalEntityService: LegalEntityService
   let documentTypeService: DocumentTypeService
 
   beforeEach(async () => {
@@ -52,6 +55,12 @@ describe('MailRuleEditDialogComponent', () => {
         },
         {
           provide: CorrespondentService,
+          useValue: {
+            listAll: () => of([]),
+          },
+        },
+        {
+          provide: LegalEntityService,
           useValue: {
             listAll: () => of([]),
           },
@@ -97,6 +106,12 @@ describe('MailRuleEditDialogComponent', () => {
       .setValue(MailMetadataCorrespondentOption.FromCustom)
     expect(component.showCorrespondentField).toBeTruthy()
 
+    expect(component.showLegalEntityField).toBeFalsy()
+    component.objectForm
+      .get('assign_legal_entity_from')
+      .setValue(MailMetadataLegalEntityOption.FromCustom)
+    expect(component.showLegalEntityField).toBeTruthy()
+
     expect(component.showActionParamField).toBeFalsy()
     component.objectForm.get('action').setValue(MailAction.Move)
     expect(component.showActionParamField).toBeTruthy()
@@ -108,6 +123,7 @@ describe('MailRuleEditDialogComponent', () => {
     // coverage of optional chaining
     component.objectForm = null
     expect(component.showCorrespondentField).toBeFalsy()
+    expect(component.showLegalEntityField).toBeFalsy()
     expect(component.showActionParamField).toBeFalsy()
   })
 })

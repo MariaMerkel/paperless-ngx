@@ -2,6 +2,7 @@ import { convertToParamMap } from '@angular/router'
 import { FilterRule } from '../data/filter-rule'
 import {
   FILTER_CORRESPONDENT,
+  FILTER_LEGAL_ENTITY,
   FILTER_HAS_ANY_TAG,
   FILTER_HAS_TAGS_ALL,
 } from '../data/filter-rule-type'

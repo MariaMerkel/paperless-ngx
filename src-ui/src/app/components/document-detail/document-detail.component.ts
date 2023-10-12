@@ -8,6 +8,7 @@ import {
   NgbNavChangeEvent,
 } from '@ng-bootstrap/ng-bootstrap'
 import { PaperlessCorrespondent } from 'src/app/data/paperless-correspondent'
+import { PaperlessLegalEntity } from 'src/app/data/paperless-legalentity'
 import { PaperlessDocument } from 'src/app/data/paperless-document'
 import { PaperlessDocumentMetadata } from 'src/app/data/paperless-document-metadata'
 import { PaperlessDocumentType } from 'src/app/data/paperless-document-type'
@@ -16,10 +17,12 @@ import { DocumentTitlePipe } from 'src/app/pipes/document-title.pipe'
 import { DocumentListViewService } from 'src/app/services/document-list-view.service'
 import { OpenDocumentsService } from 'src/app/services/open-documents.service'
 import { CorrespondentService } from 'src/app/services/rest/correspondent.service'
+import { LegalEntityService } from 'src/app/services/rest/legalentity.service'
 import { DocumentTypeService } from 'src/app/services/rest/document-type.service'
 import { DocumentService } from 'src/app/services/rest/document.service'
 import { ConfirmDialogComponent } from '../common/confirm-dialog/confirm-dialog.component'
 import { CorrespondentEditDialogComponent } from '../common/edit-dialog/correspondent-edit-dialog/correspondent-edit-dialog.component'
+import { LegalEntityEditDialogComponent } from '../common/edit-dialog/legalentity-edit-dialog/legalentity-edit-dialog.component'
 import { DocumentTypeEditDialogComponent } from '../common/edit-dialog/document-type-edit-dialog/document-type-edit-dialog.component'
 import { PDFDocumentProxy } from 'ng2-pdf-viewer'
 import { ToastService } from 'src/app/services/toast.service'
@@ -38,6 +41,7 @@ import {
 import { PaperlessDocumentSuggestions } from 'src/app/data/paperless-document-suggestions'
 import {
   FILTER_CORRESPONDENT,
+  FILTER_LEGAL_ENTITY,
   FILTER_CREATED_AFTER,
   FILTER_CREATED_BEFORE,
   FILTER_DOCUMENT_TYPE,
@@ -106,6 +110,7 @@ export class DocumentDetailComponent
   downloadOriginalUrl: string
 
   correspondents: PaperlessCorrespondent[]
+  legal_entities: PaperlessLegalEntity[]
   documentTypes: PaperlessDocumentType[]
   storagePaths: PaperlessStoragePath[]
 
@@ -114,6 +119,7 @@ export class DocumentDetailComponent
     content: new FormControl(''),
     created_date: new FormControl(),
     correspondent: new FormControl(),
+    legal_entity: new FormControl(),
     document_type: new FormControl(),
     storage_path: new FormControl(),
     archive_serial_number: new FormControl(),
@@ -154,6 +160,7 @@ export class DocumentDetailComponent
     private documentsService: DocumentService,
     private route: ActivatedRoute,
     private correspondentService: CorrespondentService,
+    private legalEntityService: LegalEntityService,
     private documentTypeService: DocumentTypeService,
     private router: Router,
     private modalService: NgbModal,
@@ -215,6 +222,11 @@ export class DocumentDetailComponent
       .listAll()
       .pipe(first(), takeUntil(this.unsubscribeNotifier))
       .subscribe((result) => (this.correspondents = result.results))
+
+    this.legalEntityService
+      .listAll()
+      .pipe(first(), takeUntil(this.unsubscribeNotifier))
+      .subscribe((result) => (this.legal_entities = result.results))
 
     this.documentTypeService
       .listAll()
@@ -315,6 +327,7 @@ export class DocumentDetailComponent
             content: doc.content,
             created_date: doc.created_date,
             correspondent: doc.correspondent,
+            legal_entity: doc.legal_entity,
             document_type: doc.document_type,
             storage_path: doc.storage_path,
             archive_serial_number: doc.archive_serial_number,
@@ -475,6 +488,29 @@ export class DocumentDetailComponent
       .subscribe(({ newCorrespondent, correspondents }) => {
         this.correspondents = correspondents.results
         this.documentForm.get('correspondent').setValue(newCorrespondent.id)
+      })
+  }
+
+  createLegalEntity(newName: string) {
+    var modal = this.modalService.open(LegalEntityEditDialogComponent, {
+      backdrop: 'static',
+    })
+    modal.componentInstance.dialogMode = EditDialogMode.CREATE
+    if (newName) modal.componentInstance.object = { name: newName }
+    modal.componentInstance.succeeded
+      .pipe(
+        switchMap((newLegalEntity) => {
+          return this.legalEntityService
+            .listAll()
+            .pipe(
+              map((legal_entities) => ({ newLegalEntity, legal_entities }))
+            )
+        })
+      )
+      .pipe(takeUntil(this.unsubscribeNotifier))
+      .subscribe(({ newLegalEntity, legal_entities }) => {
+        this.legal_entities = legal_entities.results
+        this.documentForm.get('legal_entity').setValue(newLegalEntity.id)
       })
   }
 

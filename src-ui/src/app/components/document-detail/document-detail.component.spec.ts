@@ -25,6 +25,7 @@ import { routes } from 'src/app/app-routing.module'
 import {
   FILTER_FULLTEXT_MORELIKE,
   FILTER_CORRESPONDENT,
+  FILTER_LEGALENTITY,
   FILTER_DOCUMENT_TYPE,
   FILTER_STORAGE_PATH,
   FILTER_HAS_TAGS_ALL,
@@ -32,6 +33,7 @@ import {
   FILTER_CREATED_BEFORE,
 } from 'src/app/data/filter-rule-type'
 import { PaperlessCorrespondent } from 'src/app/data/paperless-correspondent'
+import { PaperlessLegalEntity } from 'src/app/data/paperless-legalentity'
 import { PaperlessDocument } from 'src/app/data/paperless-document'
 import { PaperlessDocumentType } from 'src/app/data/paperless-document-type'
 import { PaperlessStoragePath } from 'src/app/data/paperless-storage-path'
@@ -47,6 +49,7 @@ import { DocumentListViewService } from 'src/app/services/document-list-view.ser
 import { OpenDocumentsService } from 'src/app/services/open-documents.service'
 import { PermissionsService } from 'src/app/services/permissions.service'
 import { CorrespondentService } from 'src/app/services/rest/correspondent.service'
+import { LegalEntityService } from 'src/app/services/rest/legalentity.service'
 import { DocumentTypeService } from 'src/app/services/rest/document-type.service'
 import { DocumentService } from 'src/app/services/rest/document.service'
 import { StoragePathService } from 'src/app/services/rest/storage-path.service'
@@ -55,6 +58,7 @@ import { SettingsService } from 'src/app/services/settings.service'
 import { ToastService } from 'src/app/services/toast.service'
 import { ConfirmDialogComponent } from '../common/confirm-dialog/confirm-dialog.component'
 import { CorrespondentEditDialogComponent } from '../common/edit-dialog/correspondent-edit-dialog/correspondent-edit-dialog.component'
+import { LegalEntityEditDialogComponent } from '../common/edit-dialog/legalentity-edit-dialog/legalentity-edit-dialog.component'
 import { DocumentTypeEditDialogComponent } from '../common/edit-dialog/document-type-edit-dialog/document-type-edit-dialog.component'
 import { StoragePathEditDialogComponent } from '../common/edit-dialog/storage-path-edit-dialog/storage-path-edit-dialog.component'
 import { DateComponent } from '../common/input/date/date.component'
@@ -71,6 +75,7 @@ const doc: PaperlessDocument = {
   id: 3,
   title: 'Doc 3',
   correspondent: 11,
+  legalentity: 11,
   document_type: 21,
   storage_path: 31,
   tags: [41, 42, 43],
@@ -127,6 +132,7 @@ describe('DocumentDetailComponent', () => {
         CustomDatePipe,
         DocumentTypeEditDialogComponent,
         CorrespondentEditDialogComponent,
+        LegalEntityEditDialogComponent,
         StoragePathEditDialogComponent,
         IfOwnerDirective,
         PermissionsFormComponent,
@@ -146,6 +152,20 @@ describe('DocumentDetailComponent', () => {
                   {
                     id: 11,
                     name: 'Correspondent11',
+                  },
+                ],
+              }),
+          },
+        },
+        {
+          provide: LegalEntityService,
+          useValue: {
+            listAll: () =>
+              of({
+                results: [
+                  {
+                    id: 11,
+                    name: 'LegalEntity11',
                   },
                 ],
               }),
@@ -321,6 +341,20 @@ describe('DocumentDetailComponent', () => {
       name: 'NewCorrrespondent12',
     })
     expect(component.documentForm.get('correspondent').value).toEqual(12)
+  })
+
+  it('should support creating a legal entity', () => {
+    initNormally()
+    let openModal: NgbModalRef
+    modalService.activeInstances.subscribe((modal) => (openModal = modal[0]))
+    const modalSpy = jest.spyOn(modalService, 'open')
+    component.createLegalEntity('NewLegalEntity12')
+    expect(modalSpy).toHaveBeenCalled()
+    openModal.componentInstance.succeeded.next({
+      id: 12,
+      name: 'NewLegalEntity12',
+    })
+    expect(component.documentForm.get('legalentity').value).toEqual(12)
   })
 
   it('should support creating storage path', () => {
@@ -675,6 +709,23 @@ describe('DocumentDetailComponent', () => {
     expect(qfSpy).toHaveBeenCalledWith([
       {
         rule_type: FILTER_CORRESPONDENT,
+        value: object.id.toString(),
+      },
+    ])
+  })
+
+  it('should support quick filtering by legal entity', () => {
+    initNormally()
+    const object = {
+      id: 22,
+      name: 'LegalEntity22',
+      last_correspondence: new Date().toISOString(),
+    } as PaperlessLegalEntity
+    const qfSpy = jest.spyOn(documentListViewService, 'quickFilter')
+    component.filterDocuments([object])
+    expect(qfSpy).toHaveBeenCalledWith([
+      {
+        rule_type: FILTER_LEGALENTITY,
         value: object.id.toString(),
       },
     ])

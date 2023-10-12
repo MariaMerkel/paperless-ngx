@@ -454,6 +454,8 @@ export class SettingsComponent
           assign_document_type: rule.assign_document_type,
           assign_correspondent_from: rule.assign_correspondent_from,
           assign_correspondent: rule.assign_correspondent,
+          assign_legal_entity_from: rule.assign_legal_entity_from,
+          assign_legal_entity: rule.assign_legal_entity,
         }
         this.mailRuleGroup.addControl(
           rule.id.toString(),
@@ -475,6 +477,8 @@ export class SettingsComponent
             assign_document_type: new FormControl(null),
             assign_correspondent_from: new FormControl(null),
             assign_correspondent: new FormControl(null),
+            assign_legal_enntity_from: new FormControl(null),
+            assign_legal_enntity: new FormControl(null),
           })
         )
       }

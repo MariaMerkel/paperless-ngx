@@ -45,18 +45,14 @@ def match_correspondents(document: Document, classifier: DocumentClassifier, use
         ),
     )
 
-def match_legalentities(document: Document, classifier: DocumentClassifier, user=None):
+def match_legal_entities(document: Document, classifier: DocumentClassifier, user=None):
     pred_id = classifier.predict_legal_entity(document.content) if classifier else None
 
     if user is None and document.owner is not None:
         user = document.owner
 
     if user is not None:
-        legal_entities = get_objects_for_user_owner_aware(
-            user,
-            "documents.view_legal_entity",
-            LegalEntity,
-        )
+        legal_entities = None
     else:
         legal_entities = LegalEntity.objects.all()
 

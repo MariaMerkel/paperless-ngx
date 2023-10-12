@@ -79,7 +79,7 @@ from .filters import DocumentTypeFilterSet
 from .filters import StoragePathFilterSet
 from .filters import TagFilterSet
 from .matching import match_correspondents
-from .matching import match_legalentities
+from .matching import match_legal_entities
 from .matching import match_document_types
 from .matching import match_storage_paths
 from .matching import match_tags
@@ -465,9 +465,7 @@ class DocumentViewSet(
                 "correspondents": [
                     c.id for c in match_correspondents(doc, classifier, request.user)
                 ],
-                "legal_entities": [
-                    c.id for c in match_legalentities(doc, classifier, request.user)
-                ],
+                "legal_entities": [],
                 "tags": [t.id for t in match_tags(doc, classifier, request.user)],
                 "document_types": [
                     dt.id for dt in match_document_types(doc, classifier, request.user)

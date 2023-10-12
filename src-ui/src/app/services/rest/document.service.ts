@@ -13,10 +13,12 @@ import { TagService } from './tag.service'
 import { PaperlessDocumentSuggestions } from 'src/app/data/paperless-document-suggestions'
 import { queryParamsFromFilterRules } from '../../utils/query-params'
 import { StoragePathService } from './storage-path.service'
+import { LegalEntityService } from './legalentity.service'
 
 export const DOCUMENT_SORT_FIELDS = [
   { field: 'archive_serial_number', name: $localize`ASN` },
   { field: 'correspondent__name', name: $localize`Correspondent` },
+  { field: 'legal_entity__name', name: $localize`Legal entity` },
   { field: 'title', name: $localize`Title` },
   { field: 'document_type__name', name: $localize`Document type` },
   { field: 'created', name: $localize`Created` },
@@ -42,6 +44,7 @@ export interface SelectionDataItem {
 export interface SelectionData {
   selected_storage_paths: SelectionDataItem[]
   selected_correspondents: SelectionDataItem[]
+  selected_legal_entities: SelectionDataItem[]
   selected_tags: SelectionDataItem[]
   selected_document_types: SelectionDataItem[]
 }
@@ -55,6 +58,7 @@ export class DocumentService extends AbstractPaperlessService<PaperlessDocument>
   constructor(
     http: HttpClient,
     private correspondentService: CorrespondentService,
+    private legalEntityService: LegalEntityService,
     private documentTypeService: DocumentTypeService,
     private tagService: TagService,
     private storagePathService: StoragePathService
@@ -66,6 +70,11 @@ export class DocumentService extends AbstractPaperlessService<PaperlessDocument>
     if (doc.correspondent) {
       doc.correspondent$ = this.correspondentService.getCached(
         doc.correspondent
+      )
+    }
+    if (doc.legal_entity$) {
+      doc.legal_entity$ = this.legalEntityService.getCached(
+        doc.legal_entity
       )
     }
     if (doc.document_type) {

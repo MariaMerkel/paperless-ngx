@@ -48,6 +48,9 @@ export class DocumentCardSmallComponent extends ComponentWithPermissions {
   clickCorrespondent = new EventEmitter<number>()
 
   @Output()
+  clickLegalEntity = new EventEmitter<number>()
+
+  @Output()
   clickDocumentType = new EventEmitter<number>()
 
   @Output()

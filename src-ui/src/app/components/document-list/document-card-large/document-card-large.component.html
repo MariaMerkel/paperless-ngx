@@ -20,6 +20,10 @@
               <a *ngIf="clickCorrespondent.observers.length ; else nolink" title="Filter by correspondent" i18n-title (click)="clickCorrespondent.emit(document.correspondent);$event.stopPropagation()" class="fw-bold btn-link">{{(document.correspondent$ | async)?.name}}</a>
               <ng-template #nolink>{{(document.correspondent$ | async)?.name}}</ng-template>:
             </ng-container>
+            <ng-container *ngIf="document.legal_entity">
+              <a *ngIf="clickLegalEntity.observers.length ; else nolink" title="Filter by legal entity" i18n-title (click)="clickLegalEntity.emit(document.legal_entity);$event.stopPropagation()" class="fw-bold btn-link">{{(document.legal_entity$ | async)?.name}}</a>
+              <ng-template #nolink>{{(document.legal_entity$ | async)?.name}}</ng-template>:
+            </ng-container>
             {{document.title | documentTitle}}
             <app-tag [tag]="t" linkTitle="Filter by tag" i18n-linkTitle *ngFor="let t of document.tags$ | async" class="ms-1" (click)="clickTag.emit(t.id);$event.stopPropagation()" [clickable]="clickTag.observers.length"></app-tag>
           </h5>

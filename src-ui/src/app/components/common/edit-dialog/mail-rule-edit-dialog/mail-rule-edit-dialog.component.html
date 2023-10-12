@@ -31,6 +31,8 @@
         <app-input-select i18n-title title="Assign document type" [items]="documentTypes" [allowNull]="true" formControlName="assign_document_type"></app-input-select>
         <app-input-select i18n-title title="Assign correspondent from" [items]="metadataCorrespondentOptions" formControlName="assign_correspondent_from"></app-input-select>
         <app-input-select *ngIf="showCorrespondentField" i18n-title title="Assign correspondent" [items]="correspondents" [allowNull]="true" formControlName="assign_correspondent"></app-input-select>
+        <app-input-select i18n-title title="Assign legal entity from" [items]="metadataLegalEntityOptions" formControlName="assign_legal_entity_from"></app-input-select>
+        <app-input-select *ngIf="showLegalEntityField" i18n-title title="Assign legal entity" [items]="legal_entities" [allowNull]="true" formControlName="assign_legal_entity"></app-input-select>
       </div>
     </div>
   </div>

@@ -474,7 +474,7 @@ class DocumentSerializer(OwnedObjectSerializer, DynamicFieldsModelSerializer):
         fields = (
             "id",
             "correspondent",
-            "legal_entity"
+            "legal_entity",
             "document_type",
             "storage_path",
             "title",

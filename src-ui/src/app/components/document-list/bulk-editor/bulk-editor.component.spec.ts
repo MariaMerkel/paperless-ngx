@@ -18,6 +18,7 @@ import { SafeHtmlPipe } from 'src/app/pipes/safehtml.pipe'
 import { DocumentListViewService } from 'src/app/services/document-list-view.service'
 import { PermissionsService } from 'src/app/services/permissions.service'
 import { CorrespondentService } from 'src/app/services/rest/correspondent.service'
+import { LegalEntityService } from 'src/app/services/rest/legalentity.service'
 import { DocumentTypeService } from 'src/app/services/rest/document-type.service'
 import {
   SelectionData,

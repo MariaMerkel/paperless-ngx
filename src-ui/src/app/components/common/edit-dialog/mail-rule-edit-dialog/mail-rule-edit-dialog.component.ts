@@ -4,17 +4,20 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap'
 import { first } from 'rxjs'
 import { EditDialogComponent } from 'src/app/components/common/edit-dialog/edit-dialog.component'
 import { PaperlessCorrespondent } from 'src/app/data/paperless-correspondent'
+import { PaperlessLegalEntity } from 'src/app/data/paperless-legalentity'
 import { PaperlessDocumentType } from 'src/app/data/paperless-document-type'
 import { PaperlessMailAccount } from 'src/app/data/paperless-mail-account'
 import {
   MailAction,
   MailFilterAttachmentType,
   MailMetadataCorrespondentOption,
+  MailMetadataLegalEntityOption,
   MailMetadataTitleOption,
   PaperlessMailRule,
   MailRuleConsumptionScope,
 } from 'src/app/data/paperless-mail-rule'
 import { CorrespondentService } from 'src/app/services/rest/correspondent.service'
+import { LegalEntityService } from 'src/app/services/rest/legalentity.service'
 import { DocumentTypeService } from 'src/app/services/rest/document-type.service'
 import { MailAccountService } from 'src/app/services/rest/mail-account.service'
 import { MailRuleService } from 'src/app/services/rest/mail-rule.service'
@@ -100,6 +103,25 @@ const METADATA_CORRESPONDENT_OPTIONS = [
   },
 ]
 
+const METADATA_LEGAL_ENTITY_OPTIONS = [
+  {
+    id: MailMetadataLegalEntityOption.FromNothing,
+    name: $localize`Do not assign a legal entity`,
+  },
+  {
+    id: MailMetadataLegalEntityOption.FromEmail,
+    name: $localize`Use mail address`,
+  },
+  {
+    id: MailMetadataLegalEntityOption.FromName,
+    name: $localize`Use name (or mail address if not available)`,
+  },
+  {
+    id: MailMetadataLegalEntityOption.FromCustom,
+    name: $localize`Use legal entity selected below`,
+  },
+]
+
 @Component({
   selector: 'app-mail-rule-edit-dialog',
   templateUrl: './mail-rule-edit-dialog.component.html',
@@ -108,6 +130,7 @@ const METADATA_CORRESPONDENT_OPTIONS = [
 export class MailRuleEditDialogComponent extends EditDialogComponent<PaperlessMailRule> {
   accounts: PaperlessMailAccount[]
   correspondents: PaperlessCorrespondent[]
+  legalEntities: PaperlessLegalEntity[]
   documentTypes: PaperlessDocumentType[]
 
   constructor(
@@ -115,6 +138,7 @@ export class MailRuleEditDialogComponent extends EditDialogComponent<PaperlessMa
     activeModal: NgbActiveModal,
     accountService: MailAccountService,
     correspondentService: CorrespondentService,
+    legalEntityService: LegalEntityService,
     documentTypeService: DocumentTypeService,
     userService: UserService,
     settingsService: SettingsService
@@ -130,6 +154,11 @@ export class MailRuleEditDialogComponent extends EditDialogComponent<PaperlessMa
       .listAll()
       .pipe(first())
       .subscribe((result) => (this.correspondents = result.results))
+    
+    legalEntityService
+      .listAll()
+      .pipe(first())
+      .subscribe((result) => (this.legalEntities = result.results))  
 
     documentTypeService
       .listAll()
@@ -168,6 +197,10 @@ export class MailRuleEditDialogComponent extends EditDialogComponent<PaperlessMa
         MailMetadataCorrespondentOption.FromNothing
       ),
       assign_correspondent: new FormControl(null),
+      assign_legal_entity_from: new FormControl(
+        MailMetadataLegalEntityOption.FromNothing
+      ),
+      assign_legal_entity: new FormControl(null),
     })
   }
 
@@ -175,6 +208,13 @@ export class MailRuleEditDialogComponent extends EditDialogComponent<PaperlessMa
     return (
       this.objectForm?.get('assign_correspondent_from')?.value ==
       MailMetadataCorrespondentOption.FromCustom
+    )
+  }
+
+  get showLegalEntityField(): boolean {
+    return (
+      this.objectForm?.get('assign_legal_entity_from')?.value ==
+      MailMetadataLegalEntityOption.FromCustom
     )
   }
 
@@ -199,6 +239,10 @@ export class MailRuleEditDialogComponent extends EditDialogComponent<PaperlessMa
 
   get metadataCorrespondentOptions() {
     return METADATA_CORRESPONDENT_OPTIONS
+  }
+
+  get metadataLegalEntityOptions() {
+    return METADATA_LEGAL_ENTITY_OPTIONS
   }
 
   get consumptionScopeOptions() {

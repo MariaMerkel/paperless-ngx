@@ -36,6 +36,9 @@ import {
   FILTER_CORRESPONDENT,
   FILTER_HAS_CORRESPONDENT_ANY,
   FILTER_DOES_NOT_HAVE_CORRESPONDENT,
+  FILTER_LEGALENTITY,
+  FILTER_HAS_LEGALENTITY_ANY,
+  FILTER_DOES_NOT_HAVE_LEGALENTITY,
   FILTER_DOCUMENT_TYPE,
   FILTER_HAS_DOCUMENT_TYPE_ANY,
   FILTER_DOES_NOT_HAVE_DOCUMENT_TYPE,
@@ -48,6 +51,7 @@ import {
   FILTER_OWNER_ISNULL,
 } from 'src/app/data/filter-rule-type'
 import { PaperlessCorrespondent } from 'src/app/data/paperless-correspondent'
+import { PaperlessLegalEntity } from 'src/app/data/paperless-legalentity'
 import { PaperlessDocumentType } from 'src/app/data/paperless-document-type'
 import { PaperlessStoragePath } from 'src/app/data/paperless-storage-path'
 import { PaperlessTag } from 'src/app/data/paperless-tag'
@@ -56,6 +60,7 @@ import { IfPermissionsDirective } from 'src/app/directives/if-permissions.direct
 import { CustomDatePipe } from 'src/app/pipes/custom-date.pipe'
 import { FilterPipe } from 'src/app/pipes/filter.pipe'
 import { CorrespondentService } from 'src/app/services/rest/correspondent.service'
+import { LegalEntity } from 'src/app/services/rest/legalentity.service'
 import { DocumentTypeService } from 'src/app/services/rest/document-type.service'
 import { DocumentService } from 'src/app/services/rest/document.service'
 import { StoragePathService } from 'src/app/services/rest/storage-path.service'

@@ -134,6 +134,13 @@
               </svg><span>&nbsp;<ng-container i18n>Correspondents</ng-container></span>
             </a>
           </li>
+          <li class="nav-item" *appIfPermissions="{ action: PermissionAction.View, type: PermissionType.LegalEntity }">
+            <a class="nav-link" routerLink="legal_entities" routerLinkActive="active" (click)="closeMenu()" ngbPopover="Legal entities" i18n-ngbPopover [disablePopover]="!slimSidebarEnabled" placement="end" container="body" triggers="mouseenter:mouseleave" popoverClass="popover-slim">
+              <svg class="sidebaricon" fill="currentColor">
+                <use xlink:href="assets/bootstrap-icons.svg#person"/>
+              </svg><span>&nbsp;<ng-container i18n>Legal entities</ng-container></span>
+            </a>
+          </li>
           <li class="nav-item" *appIfPermissions="{ action: PermissionAction.View, type: PermissionType.Tag }" tourAnchor="tour.tags">
             <a class="nav-link" routerLink="tags" routerLinkActive="active" (click)="closeMenu()" ngbPopover="Tags" i18n-ngbPopover [disablePopover]="!slimSidebarEnabled" placement="end" container="body" triggers="mouseenter:mouseleave" popoverClass="popover-slim">
               <svg class="sidebaricon" fill="currentColor">

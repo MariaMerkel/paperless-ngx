@@ -279,6 +279,11 @@ export class DocumentListComponent
     this.filterEditor.toggleCorrespondent(correspondentID)
   }
 
+  clickLegalEntity(legalEntityID: number) {
+    this.list.selectNone()
+    this.filterEditor.toggleLegalEntity(legalEntityID)
+  }
+
   clickDocumentType(documentTypeID: number) {
     this.list.selectNone()
     this.filterEditor.toggleDocumentType(documentTypeID)

@@ -5,6 +5,7 @@ import { DashboardComponent } from './components/dashboard/dashboard.component'
 import { DocumentDetailComponent } from './components/document-detail/document-detail.component'
 import { DocumentListComponent } from './components/document-list/document-list.component'
 import { CorrespondentListComponent } from './components/manage/correspondent-list/correspondent-list.component'
+import { LegalEntityListComponent } from './components/manage/legalentity-list/legalentity-list.component'
 import { DocumentTypeListComponent } from './components/manage/document-type-list/document-type-list.component'
 import { LogsComponent } from './components/manage/logs/logs.component'
 import { SettingsComponent } from './components/manage/settings/settings.component'
@@ -117,6 +118,17 @@ export const routes: Routes = [
           requiredPermission: {
             action: PermissionAction.View,
             type: PermissionType.Correspondent,
+          },
+        },
+      },
+      {
+        path: 'legal_entities',
+        component: LegalEntityListComponent,
+        canActivate: [PermissionsGuard],
+        data: {
+          requiredPermission: {
+            action: PermissionAction.View,
+            type: PermissionType.LegalEntity,
           },
         },
       },
