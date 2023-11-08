@@ -56,6 +56,7 @@ def get_schema():
         type_id=NUMERIC(),
         has_type=BOOLEAN(),
         created=DATETIME(sortable=True),
+        due_date=DATETIME(sortable=True),
         modified=DATETIME(sortable=True),
         added=DATETIME(sortable=True),
         path=TEXT(sortable=True),
@@ -145,6 +146,7 @@ def update_document(writer: AsyncWriter, doc: Document):
         type_id=doc.document_type.id if doc.document_type else None,
         has_type=doc.document_type is not None,
         created=doc.created,
+        due_date=doc.due_date,
         added=doc.added,
         asn=asn,
         modified=doc.modified,
@@ -190,6 +192,7 @@ class DelayedQuery:
         "tags": ("tag", ["id__all", "id__in", "id__none"]),
         "added": ("added", ["date__lt", "date__gt"]),
         "created": ("created", ["date__lt", "date__gt"]),
+        "due_date": ("due_date", ["date__lt", "date__gt"]),
         "checksum": ("checksum", ["icontains", "istartswith"]),
         "original_filename": ("original_filename", ["icontains", "istartswith"]),
     }
@@ -283,6 +286,7 @@ class DelayedQuery:
 
         sort_fields_map = {
             "created": "created",
+            "due_date": "due_date",
             "modified": "modified",
             "added": "added",
             "title": "title",

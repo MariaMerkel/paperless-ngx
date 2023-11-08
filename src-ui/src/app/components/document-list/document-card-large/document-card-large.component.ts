@@ -38,6 +38,14 @@ export class DocumentCardLargeComponent extends ComponentWithPermissions {
     return this.toggleSelected.observers.length > 0
   }
 
+  get currentDate() {
+    return new Date
+  }
+
+  get overdue() {
+    return this.currentDate < this.document.due_date
+  }
+
   @Input()
   document: PaperlessDocument
 

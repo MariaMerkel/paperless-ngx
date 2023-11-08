@@ -48,6 +48,8 @@ export interface PaperlessDocument extends ObjectWithPermissions {
   // localized date
   created_date?: Date
 
+  due_date?: Date
+
   modified?: Date
 
   added?: Date

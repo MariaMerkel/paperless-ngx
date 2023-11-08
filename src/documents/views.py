@@ -291,6 +291,7 @@ class DocumentViewSet(
         "legal_entity__name",
         "document_type__name",
         "created",
+        "due_date",
         "modified",
         "added",
         "archive_serial_number",
@@ -522,6 +523,7 @@ class DocumentViewSet(
                 "id": c.id,
                 "note": c.note,
                 "created": c.created,
+                "due_date": c.due_date,
                 "user": {
                     "id": c.user.id,
                     "username": c.user.username,
@@ -781,6 +783,7 @@ class PostDocumentView(GenericAPIView):
         tag_ids = serializer.validated_data.get("tags")
         title = serializer.validated_data.get("title")
         created = serializer.validated_data.get("created")
+        due_date = serializer.validated_data.get("due_date")
         archive_serial_number = serializer.validated_data.get("archive_serial_number")
 
         t = int(mktime(datetime.now().timetuple()))
@@ -807,6 +810,7 @@ class PostDocumentView(GenericAPIView):
             document_type_id=document_type_id,
             tag_ids=tag_ids,
             created=created,
+            due_date=due_date,
             asn=archive_serial_number,
             owner_id=request.user.id,
         )

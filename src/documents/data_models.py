@@ -23,6 +23,7 @@ class DocumentMetadataOverrides:
     document_type_id: Optional[int] = None
     tag_ids: Optional[List[int]] = None
     created: Optional[datetime.datetime] = None
+    due_date: Optional[datetime.datetime] = None
     asn: Optional[int] = None
     owner_id: Optional[int] = None
 

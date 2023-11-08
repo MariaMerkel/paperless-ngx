@@ -215,6 +215,8 @@ class Document(ModelWithOwner):
 
     created = models.DateTimeField(_("created"), default=timezone.now, db_index=True)
 
+    due_date = models.DateTimeField(_("due_date"), default=timezone.now, db_index=False, null=True)
+
     modified = models.DateTimeField(
         _("modified"),
         auto_now=True,
@@ -302,6 +304,9 @@ class Document(ModelWithOwner):
             res += f" (as {self.legal_entity})"
         if self.title:
             res += f" {self.title}"
+        if self.due_date:
+            due_date = datetime.date.isoformat(timezone.localdate(self.due_date))
+            res += f" due {self.due_date}"
         return res
 
     @property
@@ -374,6 +379,12 @@ class Document(ModelWithOwner):
     @property
     def created_date(self):
         return timezone.localdate(self.created)
+
+    @property
+    def due_date_date(self): # lovely naming, i know, but that is to prevent this shadowing self.due_date
+        if not self.due_date:
+            return None
+        return timezone.localdate(self.due_date)
 
 
 class Log(models.Model):
@@ -471,6 +482,11 @@ class SavedViewFilterRule(models.Model):
         (36, _("legal entity is")),
         (37, _("has legal entity in")),
         (38, _("does not have legal entity in")),
+        (39, _("due date before")),
+        (40, _("due date after")),
+        (41, _("due date year is")),
+        (42, _("due date month is")),
+        (43, _("due date day is")),
     ]
 
     saved_view = models.ForeignKey(
@@ -516,6 +532,7 @@ class FileInfo:
         created=None,
         correspondent=None,
         legal_entity=None,
+        due_date=None,
         title=None,
         tags=(),
         extension=None,
@@ -525,12 +542,19 @@ class FileInfo:
         self.extension = extension
         self.correspondent = correspondent
         self.legal_entity = legal_entity
+        self.due_date = due_date
         self.tags = tags
 
     @classmethod
     def _get_created(cls, created):
         try:
             return dateutil.parser.parse(f"{created[:-1]:0<14}Z")
+        except ValueError:
+            return None
+    @classmethod
+    def _get_due_date(cls, due_date):
+        try:
+            return dateutil.parser.parse(f"{due_date[:-1]:0<14}Z")
         except ValueError:
             return None
 

@@ -63,6 +63,14 @@ export class DocumentCardSmallComponent extends ComponentWithPermissions {
   mouseOnPreview = false
   popoverHidden = true
 
+  get currentDate() {
+    return new Date
+  }
+
+  get overdue() {
+    return this.currentDate < this.document.due_date
+  }
+
   getIsThumbInverted() {
     return this.settingsService.get(SETTINGS_KEYS.DARK_MODE_THUMB_INVERTED)
   }

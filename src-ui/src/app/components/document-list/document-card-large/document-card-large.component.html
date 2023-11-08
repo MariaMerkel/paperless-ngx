@@ -102,6 +102,7 @@
                 <span i18n>Created: {{ document.created | customDate }}</span>
                 <span i18n>Added: {{ document.added | customDate }}</span>
                 <span i18n>Modified: {{ document.modified | customDate }}</span>
+                <span i18n>Due date: {{ document.due_date | customDate }}</span>
               </div>
             </ng-template>
             <div class="list-group-item bg-light text-dark p-1 border-0" [ngbTooltip]="dateTooltip">
@@ -109,6 +110,12 @@
                 <use xlink:href="assets/bootstrap-icons.svg#calendar-event"/>
               </svg>
               <small>{{document.created_date | customDate:'mediumDate'}}</small>
+            </div>
+            <div class="list-group-item bg-light text-dark p-1 border-0" [ngbTooltip]="dateTooltip">
+              <svg class="metadata-icon me-2 text-muted" fill="currentColor">
+                <use xlink:href="assets/bootstrap-icons.svg#calendar-event"/>
+              </svg>
+              <small>Due {{document.due_date | customDate:'mediumDate'}} <b style="color:red" *ngIf="overdue">(overdue)</b></small>
             </div>
             <div *ngIf="document.owner && document.owner !== settingsService.currentUser.id" class="list-group-item bg-light text-dark p-1 border-0">
               <svg class="metadata-icon me-2 text-muted" fill="currentColor">

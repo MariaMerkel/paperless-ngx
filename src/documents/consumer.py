@@ -258,6 +258,7 @@ class Consumer(LoggingMixin):
 
         script_env["DOCUMENT_ID"] = str(document.pk)
         script_env["DOCUMENT_CREATED"] = str(document.created)
+        script_env["DOCUMENT_DUE_DATE"] = str(document.due_date)
         script_env["DOCUMENT_MODIFIED"] = str(document.modified)
         script_env["DOCUMENT_ADDED"] = str(document.added)
         script_env["DOCUMENT_FILE_NAME"] = document.get_public_filename()
@@ -325,6 +326,7 @@ class Consumer(LoggingMixin):
         override_tag_ids=None,
         task_id=None,
         override_created=None,
+        override_due_date=None,
         override_asn=None,
         override_owner_id=None,
     ) -> Document:
@@ -341,6 +343,7 @@ class Consumer(LoggingMixin):
         self.override_tag_ids = override_tag_ids
         self.task_id = task_id or str(uuid.uuid4())
         self.override_created = override_created
+        self.override_due_date = override_due_date
         self.override_asn = override_asn
         self.override_owner_id = override_owner_id
 

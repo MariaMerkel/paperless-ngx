@@ -76,6 +76,8 @@
                         <app-input-number i18n-title title="Archive serial number" [error]="error?.archive_serial_number" formControlName='archive_serial_number'></app-input-number>
                         <app-input-date i18n-title title="Date created" formControlName="created_date" [suggestions]="suggestions?.dates" [showFilter]="true" (filterDocuments)="filterDocuments($event)"
                             [error]="error?.created_date"></app-input-date>
+                        <app-input-date i18n-title title="Due date" formControlName="due_date" [suggestions]="suggestions?.dates" [showFilter]="true" (filterDocuments)="filterDocuments($event)"
+                            [error]="error?.due_date"></app-input-date>
                         <app-input-select [items]="correspondents" i18n-title title="Correspondent" formControlName="correspondent" [allowNull]="true" [showFilter]="true" (filterDocuments)="filterDocuments($event)"
                             (createNew)="createCorrespondent($event)" [suggestions]="suggestions?.correspondents" *appIfPermissions="{ action: PermissionAction.View, type: PermissionType.Correspondent }"></app-input-select>
                         <app-input-select [items]="legal_entities" i18n-title title="Legal entity" formControlName="legal_entity" [allowNull]="true" [showFilter]="true" (filterDocuments)="filterDocuments($event)"

@@ -189,6 +189,13 @@
         [currentSortReverse]="list.sortReverse"
         (sort)="onSort($event)"
         i18n>Created</th>
+      <th
+        appSortable="due_date"
+        title="Sort by due date" i18n-title
+        [currentSortField]="list.sortField"
+        [currentSortReverse]="list.sortReverse"
+        (sort)="onSort($event)"
+        i18n>Due date</th>
       <th class="d-none d-xl-table-cell"
         appSortable="added"
         title="Sort by added date" i18n-title

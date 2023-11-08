@@ -482,6 +482,7 @@ class DocumentSerializer(OwnedObjectSerializer, DynamicFieldsModelSerializer):
             "tags",
             "created",
             "created_date",
+            "due_date",
             "modified",
             "added",
             "archive_serial_number",
@@ -741,6 +742,13 @@ class PostDocumentSerializer(serializers.Serializer):
         required=False,
     )
 
+    due_date = serializers.DateTimeField(
+        label="Due date",
+        allow_null=True,
+        write_only=True,
+        required=False,
+    )
+
     document = serializers.FileField(
         label="Document",
         write_only=True,
@@ -886,6 +894,13 @@ class StoragePathSerializer(MatchingModelSerializer, OwnedObjectSerializer):
                 created_month_name="created_month_name",
                 created_month_name_short="created_month_name_short",
                 created_day="created_day",
+                due_date="due_date",
+                due_date_year="due_date_year",
+                due_date_year_short="due_date_year_short",
+                due_date_month="due_date_month",
+                due_date_month_name="due_date_month_name",
+                due_date_month_name_short="due_date_month_name_short",
+                due_date_day="due_date_day",
                 added="added",
                 added_year="added_year",
                 added_year_short="added_year_short",

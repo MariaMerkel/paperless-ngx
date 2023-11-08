@@ -50,6 +50,12 @@ export const FILTER_OWNER_ANY = 33
 export const FILTER_OWNER_ISNULL = 34
 export const FILTER_OWNER_DOES_NOT_INCLUDE = 35
 
+export const FILTER_DUE_DATE_BEFORE = 39
+export const FILTER_DUE_DATE_AFTER = 40
+export const FILTER_DUE_DATE_YEAR = 41
+export const FILTER_DUE_DATE_MONTH = 42
+export const FILTER_DUE_DATE_DAY = 43
+
 export const FILTER_RULE_TYPES: FilterRuleType[] = [
   {
     id: FILTER_TITLE,
@@ -209,7 +215,36 @@ export const FILTER_RULE_TYPES: FilterRuleType[] = [
     datatype: 'number',
     multi: false,
   },
-
+  {
+    id: FILTER_DUE_DATE_BEFORE,
+    filtervar: 'due_date__lt',
+    datatype: 'date',
+    multi: false,
+  },
+  {
+    id: FILTER_DUE_DATE_AFTER,
+    filtervar: 'due_date__gt',
+    datatype: 'date',
+    multi: false,
+  },
+  {
+    id: FILTER_DUE_DATE_YEAR,
+    filtervar: 'due_date__year',
+    datatype: 'number',
+    multi: false,
+  },
+  {
+    id: FILTER_DUE_DATE_MONTH,
+    filtervar: 'due_date__month',
+    datatype: 'number',
+    multi: false,
+  },
+  {
+    id: FILTER_DUE_DATE_DAY,
+    filtervar: 'due_date__day',
+    datatype: 'number',
+    multi: false,
+  },
   {
     id: FILTER_ADDED_BEFORE,
     filtervar: 'added__date__lt',

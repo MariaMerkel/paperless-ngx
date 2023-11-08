@@ -25,7 +25,7 @@ import { routes } from 'src/app/app-routing.module'
 import {
   FILTER_FULLTEXT_MORELIKE,
   FILTER_CORRESPONDENT,
-  FILTER_LEGALENTITY,
+  FILTER_LEGAL_ENTITY,
   FILTER_DOCUMENT_TYPE,
   FILTER_STORAGE_PATH,
   FILTER_HAS_TAGS_ALL,
@@ -82,6 +82,7 @@ const doc: PaperlessDocument = {
   content: 'text content',
   added: new Date(),
   created: new Date(),
+  due_date: new Date(),
   archive_serial_number: null,
   original_file_name: 'file.pdf',
   owner: null,
