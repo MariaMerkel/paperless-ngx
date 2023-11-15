@@ -402,6 +402,9 @@ def autocomplete(ix: FileIndex, term: str, limit: int = 10, user: User = None):
     and without scoring
     """
     terms = []
+    term_queried = term 
+    # the term variable is shadowed later, as we want to return the original term back to the user copy it into term_queried
+    # doing it like this makes it easier to update this repo with upstream
 
     with ix.searcher(weighting=TF_IDF()) as s:
         qp = QueryParser("content", schema=ix.schema)
@@ -420,7 +423,8 @@ def autocomplete(ix: FileIndex, term: str, limit: int = 10, user: User = None):
                 for _, term in hit.matched_terms():
                     termCounts[term] += 1
             terms = [t for t, _ in termCounts.most_common(limit)]
-
+    terms = [term_queried] + terms
+    # prepend the queried term
     return terms
 
 
