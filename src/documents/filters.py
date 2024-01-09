@@ -12,6 +12,7 @@ from rest_framework_guardian.filters import ObjectPermissionsFilter
 from documents.models import Correspondent
 from documents.models import Document
 from documents.models import DocumentType
+from documents.models import LegalEntity
 from documents.models import Log
 from documents.models import ShareLink
 from documents.models import StoragePath
@@ -31,6 +32,10 @@ class CorrespondentFilterSet(FilterSet):
             "name": CHAR_KWARGS,
         }
 
+class LegalEntityFilterSet(FilterSet):
+    class Meta:
+        model = LegalEntity
+        fields = {"name": CHAR_KWARGS}
 
 class TagFilterSet(FilterSet):
     class Meta:
@@ -170,6 +175,8 @@ class DocumentFilterSet(FilterSet):
 
     correspondent__id__none = ObjectFilter(field_name="correspondent", exclude=True)
 
+    legal_entity__id__none = ObjectFilter(field_name="legal_entity", exclude=True)
+
     document_type__id__none = ObjectFilter(field_name="document_type", exclude=True)
 
     storage_path__id__none = ObjectFilter(field_name="storage_path", exclude=True)
@@ -199,6 +206,9 @@ class DocumentFilterSet(FilterSet):
             "correspondent": ["isnull"],
             "correspondent__id": ID_KWARGS,
             "correspondent__name": CHAR_KWARGS,
+            "legal_entity": ["isnull"],
+            "legal_entity__id": ID_KWARGS,
+            "legal_entity__name": CHAR_KWARGS,
             "tags__id": ID_KWARGS,
             "tags__name": CHAR_KWARGS,
             "document_type": ["isnull"],

@@ -46,6 +46,17 @@
             [documentCounts]="correspondentDocumentCounts"
             (apply)="setCorrespondents($event)">
           </pngx-filterable-dropdown>
+          <pngx-filterable-dropdown title="Legal entity" icon="person-fill" i18n-title
+            filterPlaceholder="Filter legal entities" i18n-filterPlaceholder
+            [items]="legal_entities"
+            [disabled]="!userCanEditAll"
+            [editing]="true"
+            [applyOnClose]="applyOnClose"
+            (opened)="openLegalEntityDropdown()"
+            [(selectionModel)]="legalEntitySelectionModel"
+            [documentCounts]="legalEntityDocumentCounts"
+            (apply)="setLegalEntity($event)">
+          </pngx-filterable-dropdown>
           <pngx-filterable-dropdown title="Document type" icon="file-earmark-fill" i18n-title
             filterPlaceholder="Filter document types" i18n-filterPlaceholder
             [items]="documentTypes"

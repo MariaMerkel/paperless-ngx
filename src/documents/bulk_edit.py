@@ -5,6 +5,7 @@ from django.db.models import Q
 from documents.models import Correspondent
 from documents.models import Document
 from documents.models import DocumentType
+from documents.models import LegalEntity
 from documents.models import StoragePath
 from documents.permissions import set_permissions_for_object
 from documents.tasks import bulk_update_documents
@@ -23,6 +24,17 @@ def set_correspondent(doc_ids, correspondent):
 
     return "OK"
 
+def set_legal_entity(doc_ids, legal_entity):
+    if legal_entity:
+        legal_entity = LegalEntity.objects.get(id=legal_entity)
+
+    qs = Document.objects.filter(Q(id__in=doc_ids) & ~Q(legal_entity=legal_entity))
+    affected_docs = [doc.id for doc in qs]
+    qs.update(legal_entity=legal_entity)
+
+    bulk_update_documents.delay(document_ids=affected_docs)
+
+    return "OK"
 
 def set_storage_path(doc_ids, storage_path):
     if storage_path:

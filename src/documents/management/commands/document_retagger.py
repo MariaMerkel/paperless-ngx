@@ -9,6 +9,7 @@ from documents.models import Document
 from documents.signals.handlers import set_correspondent
 from documents.signals.handlers import set_document_type
 from documents.signals.handlers import set_storage_path
+from documents.signals.handlers import set_legal_entity
 from documents.signals.handlers import set_tags
 
 logger = logging.getLogger("paperless.management.retagger")
@@ -24,6 +25,7 @@ class Command(ProgressBarMixin, BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("-c", "--correspondent", default=False, action="store_true")
+        parser.add_argument("-e", "--legal-entity", default=False, action="store_true")
         parser.add_argument("-T", "--tags", default=False, action="store_true")
         parser.add_argument("-t", "--document_type", default=False, action="store_true")
         parser.add_argument("-s", "--storage_path", default=False, action="store_true")
@@ -33,7 +35,7 @@ class Command(ProgressBarMixin, BaseCommand):
             default=False,
             action="store_true",
             help=(
-                "By default this command won't try to assign a correspondent "
+                "By default this command won't try to assign a correspondent and a legal entity"
                 "if more than one matches the document.  Use this flag if "
                 "you'd rather it just pick the first one it finds."
             ),
@@ -45,7 +47,7 @@ class Command(ProgressBarMixin, BaseCommand):
             action="store_true",
             help=(
                 "If set, the document retagger will overwrite any previously "
-                "set correspondent, document and remove correspondents, types "
+                "set correspondent, legal entity, document and remove correspondents, legal entities, types"
                 "and tags that do not match anymore due to changed rules."
             ),
         )
@@ -101,6 +103,17 @@ class Command(ProgressBarMixin, BaseCommand):
 
             if options["document_type"]:
                 set_document_type(
+                    sender=None,
+                    document=document,
+                    classifier=classifier,
+                    replace=options["overwrite"],
+                    use_first=options["use_first"],
+                    suggest=options["suggest"],
+                    base_url=options["base_url"],
+                    color=color,
+                )
+            if options["legal_entity"]:
+                set_legal_entity(
                     sender=None,
                     document=document,
                     classifier=classifier,

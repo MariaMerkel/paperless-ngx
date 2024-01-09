@@ -30,6 +30,7 @@ from documents.models import CustomFieldInstance
 from documents.models import Document
 from documents.models import DocumentType
 from documents.models import Note
+from documents.models import LegalEntity
 from documents.models import SavedView
 from documents.models import SavedViewFilterRule
 from documents.models import StoragePath
@@ -227,6 +228,8 @@ class Command(BaseCommand):
             manifest = json.loads(
                 serializers.serialize("json", Correspondent.objects.all()),
             )
+
+            manifest += json.loads(serializers.serialize("json", LegalEntity.objects.all()))
 
             manifest += json.loads(serializers.serialize("json", Tag.objects.all()))
 

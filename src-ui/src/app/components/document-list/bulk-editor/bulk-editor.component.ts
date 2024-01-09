@@ -4,6 +4,8 @@ import { Correspondent } from 'src/app/data/correspondent'
 import { DocumentType } from 'src/app/data/document-type'
 import { TagService } from 'src/app/services/rest/tag.service'
 import { CorrespondentService } from 'src/app/services/rest/correspondent.service'
+import { LegalEntity } from 'src/app/data/legalentity'
+import { LegalEntityService } from 'src/app/services/rest/legalentity.service'
 import { DocumentTypeService } from 'src/app/services/rest/document-type.service'
 import { DocumentListViewService } from 'src/app/services/document-list-view.service'
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap'
@@ -46,15 +48,18 @@ export class BulkEditorComponent
 {
   tags: Tag[]
   correspondents: Correspondent[]
+  legalEntities: LegalEntity[]
   documentTypes: DocumentType[]
   storagePaths: StoragePath[]
 
   tagSelectionModel = new FilterableDropdownSelectionModel()
   correspondentSelectionModel = new FilterableDropdownSelectionModel()
+  legalEntitySelectionModel = new FilterableDropdownSelectionModel()
   documentTypeSelectionModel = new FilterableDropdownSelectionModel()
   storagePathsSelectionModel = new FilterableDropdownSelectionModel()
   tagDocumentCounts: SelectionDataItem[]
   correspondentDocumentCounts: SelectionDataItem[]
+  legalEntityDocumentCounts: SelectionDataItem[]
   documentTypeDocumentCounts: SelectionDataItem[]
   storagePathDocumentCounts: SelectionDataItem[]
   awaitingDownload: boolean
@@ -71,6 +76,7 @@ export class BulkEditorComponent
     private documentTypeService: DocumentTypeService,
     private tagService: TagService,
     private correspondentService: CorrespondentService,
+    private legalEntityService: LegalEntityService,
     public list: DocumentListViewService,
     private documentService: DocumentService,
     private modalService: NgbModal,
@@ -123,6 +129,10 @@ export class BulkEditorComponent
       .listAll()
       .pipe(first())
       .subscribe((result) => (this.correspondents = result.results))
+    this.legalEntityService
+      .listAll()
+      .pipe(first())
+      .subscribe((result) => (this.legalEntities = result.results))
     this.documentTypeService
       .listAll()
       .pipe(first())
@@ -236,6 +246,19 @@ export class BulkEditorComponent
         this.applySelectionData(
           s.selected_correspondents,
           this.correspondentSelectionModel
+        )
+      })
+  }
+
+  openLegalEntityDropdown() {
+    this.documentService
+      .getSelectionData(Array.from(this.list.selected))
+      .pipe(first())
+      .subscribe((s) => {
+        this.legalEntityDocumentCounts = s.selected_legal_entities
+        this.applySelectionData(
+          s.selected_legal_entities,
+          this.legalEntitySelectionModel
         )
       })
   }
@@ -371,6 +394,44 @@ export class BulkEditorComponent
     } else {
       this.executeBulkOperation(null, 'set_correspondent', {
         correspondent: correspondent ? correspondent.id : null,
+      })
+    }
+  }
+
+  setLegalEntities(changedLegalEntities: ChangedItems) {
+    if (
+      changedLegalEntities.itemsToAdd.length == 0 &&
+      changedLegalEntities.itemsToRemove.length == 0
+    )
+      return
+
+    let legalEntity =
+      changedLegalEntities.itemsToAdd.length > 0
+        ? changedLegalEntities.itemsToAdd[0]
+        : null
+
+    if (this.showConfirmationDialogs) {
+      let modal = this.modalService.open(ConfirmDialogComponent, {
+        backdrop: 'static',
+      })
+      modal.componentInstance.title = $localize`Confirm legal entity assignment`
+      if (legalEntity) {
+        modal.componentInstance.message = $localize`This operation will assign the legal entity "${legalEntity.name}" to ${this.list.selected.size} selected document(s).`
+      } else {
+        modal.componentInstance.message = $localize`This operation will remove the legal entity from ${this.list.selected.size} selected document(s).`
+      }
+      modal.componentInstance.btnClass = 'btn-warning'
+      modal.componentInstance.btnCaption = $localize`Confirm`
+      modal.componentInstance.confirmClicked
+        .pipe(takeUntil(this.unsubscribeNotifier))
+        .subscribe(() => {
+          this.executeBulkOperation(modal, 'set_legal_entity', {
+            legalEntity: legalEntity ? legalEntity.id : null,
+          })
+        })
+    } else {
+      this.executeBulkOperation(null, 'set_legal_entity', {
+        legalEntity: legalEntity ? legalEntity.id : null,
       })
     }
   }

@@ -4,9 +4,11 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms'
 import { NgbActiveModal, NgbModule } from '@ng-bootstrap/ng-bootstrap'
 import { NgSelectModule } from '@ng-select/ng-select'
 import { of } from 'rxjs'
+import { LegalEntityService } from 'src/app/services/rest/legalentity.service'
 import {
   MailMetadataCorrespondentOption,
   MailAction,
+  MailMetadataLegalEntityOption,
 } from 'src/app/data/mail-rule'
 import { IfOwnerDirective } from 'src/app/directives/if-owner.directive'
 import { IfPermissionsDirective } from 'src/app/directives/if-permissions.directive'
@@ -28,6 +30,7 @@ describe('MailRuleEditDialogComponent', () => {
   let component: MailRuleEditDialogComponent
   let settingsService: SettingsService
   let fixture: ComponentFixture<MailRuleEditDialogComponent>
+  let legalEntityService: LegalEntityService
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
@@ -53,6 +56,12 @@ describe('MailRuleEditDialogComponent', () => {
         },
         {
           provide: CorrespondentService,
+          useValue: {
+            listAll: () => of([]),
+          },
+        },
+        {
+          provide: LegalEntityService,
           useValue: {
             listAll: () => of([]),
           },
@@ -93,6 +102,12 @@ describe('MailRuleEditDialogComponent', () => {
     expect(editTitleSpy).toHaveBeenCalled()
   })
 
+  expect(component.showLegalEntityField).toBeFalsy()
+    component.objectForm
+      .get('assign_legal_entity_from')
+      .setValue(MailMetadataLegalEntityOption.FromCustom)
+    expect(component.showLegalEntityField).toBeTruthy()
+
   it('should support optional fields', () => {
     expect(component.showCorrespondentField).toBeFalsy()
     component.objectForm
@@ -111,6 +126,7 @@ describe('MailRuleEditDialogComponent', () => {
     // coverage of optional chaining
     component.objectForm = null
     expect(component.showCorrespondentField).toBeFalsy()
+    expect(component.showLegalEntityField).toBeFalsy()
     expect(component.showActionParamField).toBeFalsy()
   })
 })

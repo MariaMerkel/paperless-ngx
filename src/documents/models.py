@@ -95,6 +95,11 @@ class Correspondent(MatchingModel):
         verbose_name = _("correspondent")
         verbose_name_plural = _("correspondents")
 
+class LegalEntity(MatchingModel):
+    class Meta(MatchingModel.Meta):
+        verbose_name = _("legal entity")
+        verbose_name_plural = _("legal entities")
+
 
 class Tag(MatchingModel):
     color = models.CharField(_("color"), max_length=7, default="#a6cee3")
@@ -145,6 +150,15 @@ class Document(ModelWithOwner):
         related_name="documents",
         on_delete=models.SET_NULL,
         verbose_name=_("correspondent"),
+    )
+
+    legal_entity = models.ForeignKey(
+        LegalEntity,
+        blank=True,
+        null=True,
+        related_name="documents",
+        on_delete=models.SET_NULL,
+        verbose_name=_("legal_entity"),
     )
 
     storage_path = models.ForeignKey(
@@ -203,6 +217,8 @@ class Document(ModelWithOwner):
     )
 
     created = models.DateTimeField(_("created"), default=timezone.now, db_index=True)
+
+    due_date = models.DateTimeField(_("due_date"), default=timezone.now, db_index=False, null=True)
 
     modified = models.DateTimeField(
         _("modified"),
@@ -287,8 +303,14 @@ class Document(ModelWithOwner):
 
         if self.correspondent:
             res += f" {self.correspondent}"
+        if self.legal_entity:
+            res += f" (as {self.legal_entity})"
         if self.title:
             res += f" {self.title}"
+        
+        if self.due_date:
+            due_date = datetime.date.isoformat(timezone.localdate(self.due_date))
+            res += f" due {self.due_date}"
         return res
 
     @property
@@ -362,6 +384,12 @@ class Document(ModelWithOwner):
     def created_date(self):
         return timezone.localdate(self.created)
 
+    @property
+    def due_date_date(self): # lovely naming, i know, but that is to prevent this shadowing self.due_date
+        if not self.due_date:
+            return None
+        return timezone.localdate(self.due_date)
+
 
 class Log(models.Model):
     LEVELS = (
@@ -383,6 +411,8 @@ class Log(models.Model):
     )
 
     created = models.DateTimeField(_("created"), auto_now_add=True)
+
+    due_date = models.DateTimeField(_("due_date"), default=timezone.now, db_index=False, null=True)
 
     class Meta:
         ordering = ("-created",)
@@ -457,6 +487,14 @@ class SavedViewFilterRule(models.Model):
         (35, _("does not have owner in")),
         (36, _("has custom field value")),
         (37, _("is shared by me")),
+        (38, _("legal entity is")),
+        (39, _("has legal entity in")),
+        (40, _("does not have legal entity in")),
+        (41, _("due date before")),
+        (42, _("due date after")),
+        (43, _("due date year is")),
+        (44, _("due date month is")),
+        (45, _("due date day is"))
     ]
 
     saved_view = models.ForeignKey(
@@ -501,6 +539,8 @@ class FileInfo:
         self,
         created=None,
         correspondent=None,
+        legal_entity=None,
+        due_date=None,
         title=None,
         tags=(),
         extension=None,
@@ -508,6 +548,8 @@ class FileInfo:
         self.created = created
         self.title = title
         self.extension = extension
+        self.legal_entity = legal_entity
+        self.due_date = due_date
         self.correspondent = correspondent
         self.tags = tags
 
@@ -515,6 +557,13 @@ class FileInfo:
     def _get_created(cls, created):
         try:
             return dateutil.parser.parse(f"{created[:-1]:0<14}Z")
+        except ValueError:
+            return None
+
+    @classmethod
+    def _get_due_date(cls, due_date):
+        try:
+            return dateutil.parser.parse(f"{due_date[:-1]:0<14}Z")
         except ValueError:
             return None
 

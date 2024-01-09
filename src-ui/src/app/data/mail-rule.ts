@@ -32,6 +32,13 @@ export enum MailMetadataCorrespondentOption {
   FromCustom = 4,
 }
 
+export enum MailMetadataLegalEntityOption {
+  FromNothing = 1,
+  FromEmail = 2,
+  FromName = 3,
+  FromCustom = 4,
+}
+
 export interface MailRule extends ObjectWithPermissions {
   name: string
 
@@ -70,6 +77,10 @@ export interface MailRule extends ObjectWithPermissions {
   assign_correspondent_from?: MailMetadataCorrespondentOption
 
   assign_correspondent?: number // PaperlessCorrespondent.id
+
+  assign_legal_entity_from?: MailMetadataLegalEntityOption
+
+  assign_legal_entity?: number // PaperlessCorrespondent.id
 
   assign_owner_from_rule: boolean
 }

@@ -3,6 +3,7 @@ import { FilterRule } from '../data/filter-rule'
 import {
   FILTER_CORRESPONDENT,
   FILTER_HAS_ANY_TAG,
+  FILTER_LEGAL_ENTITY,
   FILTER_HAS_TAGS_ALL,
 } from '../data/filter-rule-type'
 import { paramsToViewState } from './query-params'

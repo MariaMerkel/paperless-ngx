@@ -29,6 +29,7 @@ from documents.double_sided import collate
 from documents.file_handling import create_source_path_directory
 from documents.file_handling import generate_unique_filename
 from documents.models import Correspondent
+from documents.models import LegalEntity
 from documents.models import Document
 from documents.models import DocumentType
 from documents.models import StoragePath
@@ -67,6 +68,7 @@ def train_classifier():
         not Tag.objects.filter(matching_algorithm=Tag.MATCH_AUTO).exists()
         and not DocumentType.objects.filter(matching_algorithm=Tag.MATCH_AUTO).exists()
         and not Correspondent.objects.filter(matching_algorithm=Tag.MATCH_AUTO).exists()
+        and not LegalEntity.objects.filter(matching_algorithm=Tag.MATCH_AUTO).exists()
         and not StoragePath.objects.filter(matching_algorithm=Tag.MATCH_AUTO).exists()
     ):
         logger.info("No automatic matching items, not training")
@@ -169,6 +171,7 @@ def consume_file(
         override_filename=overrides.filename,
         override_title=overrides.title,
         override_correspondent_id=overrides.correspondent_id,
+        override_legal_entity_id=overrides.legal_entity_id,
         override_document_type_id=overrides.document_type_id,
         override_tag_ids=overrides.tag_ids,
         override_storage_path_id=overrides.storage_path_id,

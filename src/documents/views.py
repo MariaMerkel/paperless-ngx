@@ -66,6 +66,7 @@ from documents.data_models import ConsumableDocument
 from documents.data_models import DocumentMetadataOverrides
 from documents.data_models import DocumentSource
 from documents.filters import CorrespondentFilterSet
+from documents.filters import LegalEntityFilterSet
 from documents.filters import DocumentFilterSet
 from documents.filters import DocumentTypeFilterSet
 from documents.filters import ObjectOwnedOrGrantedPermissionsFilter
@@ -73,11 +74,13 @@ from documents.filters import ShareLinkFilterSet
 from documents.filters import StoragePathFilterSet
 from documents.filters import TagFilterSet
 from documents.matching import match_correspondents
+from documents.matching import match_legal_entities
 from documents.matching import match_document_types
 from documents.matching import match_storage_paths
 from documents.matching import match_tags
 from documents.models import ConsumptionTemplate
 from documents.models import Correspondent
+from documents.models import LegalEntity
 from documents.models import CustomField
 from documents.models import Document
 from documents.models import DocumentType
@@ -100,6 +103,7 @@ from documents.serialisers import BulkEditObjectPermissionsSerializer
 from documents.serialisers import BulkEditSerializer
 from documents.serialisers import ConsumptionTemplateSerializer
 from documents.serialisers import CorrespondentSerializer
+from documents.serialisers import LegalEntitySerializer
 from documents.serialisers import CustomFieldSerializer
 from documents.serialisers import DocumentListSerializer
 from documents.serialisers import DocumentSerializer
@@ -208,6 +212,31 @@ class CorrespondentViewSet(ModelViewSet, PassUserMixin):
         "last_correspondence",
     )
 
+class LegalEntityViewSet(ModelViewSet, PassUserMixin):
+    model = LegalEntity
+
+    queryset = LegalEntity.objects.annotate(
+        document_count=Count("documents"),
+        last_correspondence=Max("documents__created"),
+    ).order_by(Lower("name"))
+
+    serializer_class = LegalEntitySerializer
+    pagination_class = StandardPagination
+    permission_classes = (IsAuthenticated, PaperlessObjectPermissions)
+    filter_backends = (
+        DjangoFilterBackend,
+        OrderingFilter,
+        ObjectOwnedOrGrantedPermissionsFilter,
+    )
+    filterset_class = LegalEntityFilterSet
+    ordering_fields = (
+        "name",
+        "matching_algorithm",
+        "match",
+        "document_count",
+        "last_correspondence",
+    )
+
 
 class TagViewSet(ModelViewSet, PassUserMixin):
     model = Tag
@@ -280,13 +309,15 @@ class DocumentViewSet(
         ObjectOwnedOrGrantedPermissionsFilter,
     )
     filterset_class = DocumentFilterSet
-    search_fields = ("title", "correspondent__name", "content")
+    search_fields = ("title", "correspondent__name", "legal_entity__name", "content")
     ordering_fields = (
         "id",
         "title",
         "correspondent__name",
+        "legal_entity__name",
         "document_type__name",
         "created",
+        "due_date",
         "modified",
         "added",
         "archive_serial_number",
@@ -440,6 +471,7 @@ class DocumentViewSet(
                 "correspondents": [
                     c.id for c in match_correspondents(doc, classifier, request.user)
                 ],
+                "legal_entities": [],
                 "tags": [t.id for t in match_tags(doc, classifier, request.user)],
                 "document_types": [
                     dt.id for dt in match_document_types(doc, classifier, request.user)
@@ -496,6 +528,7 @@ class DocumentViewSet(
                 "id": c.id,
                 "note": c.note,
                 "created": c.created,
+                "due_date": c.due_date,
                 "user": {
                     "id": c.user.id,
                     "username": c.user.username,
@@ -838,10 +871,12 @@ class PostDocumentView(GenericAPIView):
 
         doc_name, doc_data = serializer.validated_data.get("document")
         correspondent_id = serializer.validated_data.get("correspondent")
+        legal_entity_id = serializer.validated_data.get("legal_entity")
         document_type_id = serializer.validated_data.get("document_type")
         tag_ids = serializer.validated_data.get("tags")
         title = serializer.validated_data.get("title")
         created = serializer.validated_data.get("created")
+        due_date = serializer.validated_data.get("due_date")
         archive_serial_number = serializer.validated_data.get("archive_serial_number")
 
         t = int(mktime(datetime.now().timetuple()))
@@ -864,9 +899,11 @@ class PostDocumentView(GenericAPIView):
             filename=doc_name,
             title=title,
             correspondent_id=correspondent_id,
+            legal_entity_id=legal_entity_id,
             document_type_id=document_type_id,
             tag_ids=tag_ids,
             created=created,
+            due_date=due_date,
             asn=archive_serial_number,
             owner_id=request.user.id,
         )
@@ -896,6 +933,12 @@ class SelectionDataView(GenericAPIView):
             ),
         )
 
+        legal_entities = LegalEntity.objects.annotate(
+            document_count=Count(
+                Case(When(documents__id__in=ids, then=1), output_field=IntegerField()),
+            ),
+        )
+
         tags = Tag.objects.annotate(
             document_count=Count(
                 Case(When(documents__id__in=ids, then=1), output_field=IntegerField()),
@@ -919,6 +962,10 @@ class SelectionDataView(GenericAPIView):
                 "selected_correspondents": [
                     {"id": t.id, "document_count": t.document_count}
                     for t in correspondents
+                ],
+                "selected_legal_entities": [
+                    {"id": t.id, "document_count": t.document_count}
+                    for t in legal_entities
                 ],
                 "selected_tags": [
                     {"id": t.id, "document_count": t.document_count} for t in tags

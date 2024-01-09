@@ -16,6 +16,7 @@ from documents.views import BulkEditObjectPermissionsView
 from documents.views import BulkEditView
 from documents.views import ConsumptionTemplateViewSet
 from documents.views import CorrespondentViewSet
+from documents.views import LegalEntityViewSet
 from documents.views import CustomFieldViewSet
 from documents.views import DocumentTypeViewSet
 from documents.views import IndexView
@@ -45,6 +46,7 @@ from paperless_mail.views import MailRuleViewSet
 
 api_router = DefaultRouter()
 api_router.register(r"correspondents", CorrespondentViewSet)
+api_router.register(r"legal_entities", LegalEntityViewSet)
 api_router.register(r"document_types", DocumentTypeViewSet)
 api_router.register(r"documents", UnifiedSearchViewSet)
 api_router.register(r"logs", LogViewSet, basename="logs")

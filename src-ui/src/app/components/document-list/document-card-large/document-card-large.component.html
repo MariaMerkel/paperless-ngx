@@ -24,6 +24,14 @@
               }
               :
             }
+            @if (document.legal_entity) {
+              @if (clickLegalEntity.observers.length ) {
+                <i>(<a title="Filter by legal entity" i18n-title (click)="clickLegalEntity.emit(document.legal_entity);$event.stopPropagation()" class="fw-bold btn-link">{{(document.legal_entity$ | async)?.name}}</a>)</i>
+              } @else {
+                {{(document.legal_entity$ | async)?.name}}
+              }
+            }
+              <ng-template #nolink>{{(document.legal_entity$ | async)?.name}}</ng-template>:
             {{document.title | documentTitle}}
             @for (t of document.tags$ | async; track t) {
               <pngx-tag [tag]="t" linkTitle="Filter by tag" i18n-linkTitle class="ms-1" (click)="clickTag.emit(t.id);$event.stopPropagation()" [clickable]="clickTag.observers.length"></pngx-tag>
@@ -118,6 +126,7 @@
                         <span i18n>Created: {{ document.created | customDate }}</span>
                         <span i18n>Added: {{ document.added | customDate }}</span>
                         <span i18n>Modified: {{ document.modified | customDate }}</span>
+                        <span i18n>Due date: {{ document.due_date | customDate }}</span>
                       </div>
                     </ng-template>
                     <div class="list-group-item bg-light text-dark p-1 border-0" [ngbTooltip]="dateTooltip">
@@ -125,6 +134,12 @@
                         <use xlink:href="assets/bootstrap-icons.svg#calendar-event"/>
                       </svg>
                       <small>{{document.created_date | customDate:'mediumDate'}}</small>
+                    </div>
+                    <div class="list-group-item bg-light text-dark p-1 border-0" [ngbTooltip]="dateTooltip">
+                      <svg class="metadata-icon me-2 text-muted" fill="currentColor">
+                        <use xlink:href="assets/bootstrap-icons.svg#calendar-event"/>
+                      </svg>
+                      <small>Due {{document.due_date | customDate:'mediumDate'}}</small>
                     </div>
                     @if (document.owner && document.owner !== settingsService.currentUser.id) {
                       <div class="list-group-item bg-light text-dark p-1 border-0">

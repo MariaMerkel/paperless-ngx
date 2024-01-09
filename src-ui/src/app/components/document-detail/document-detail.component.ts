@@ -17,6 +17,9 @@ import { DocumentListViewService } from 'src/app/services/document-list-view.ser
 import { OpenDocumentsService } from 'src/app/services/open-documents.service'
 import { CorrespondentService } from 'src/app/services/rest/correspondent.service'
 import { DocumentTypeService } from 'src/app/services/rest/document-type.service'
+import { LegalEntity } from 'src/app/data/legalentity'
+import { LegalEntityService } from 'src/app/services/rest/legalentity.service'
+import { LegalEntityEditDialogComponent } from '../common/edit-dialog/legalentity-edit-dialog/legalentity-edit-dialog.component'
 import { DocumentService } from 'src/app/services/rest/document.service'
 import { ConfirmDialogComponent } from '../common/confirm-dialog/confirm-dialog.component'
 import { CorrespondentEditDialogComponent } from '../common/edit-dialog/correspondent-edit-dialog/correspondent-edit-dialog.component'
@@ -39,6 +42,7 @@ import {
   FILTER_CORRESPONDENT,
   FILTER_CREATED_AFTER,
   FILTER_CREATED_BEFORE,
+  FILTER_LEGAL_ENTITY,
   FILTER_DOCUMENT_TYPE,
   FILTER_FULLTEXT_MORELIKE,
   FILTER_HAS_TAGS_ALL,
@@ -121,6 +125,7 @@ export class DocumentDetailComponent
   downloadOriginalUrl: string
 
   correspondents: Correspondent[]
+  legal_entities: LegalEntity[]
   documentTypes: DocumentType[]
   storagePaths: StoragePath[]
 
@@ -128,7 +133,9 @@ export class DocumentDetailComponent
     title: new FormControl(''),
     content: new FormControl(''),
     created_date: new FormControl(),
+    due_date: new FormControl(),
     correspondent: new FormControl(),
+    legal_entity: new FormControl(),
     document_type: new FormControl(),
     storage_path: new FormControl(),
     archive_serial_number: new FormControl(),
@@ -180,6 +187,7 @@ export class DocumentDetailComponent
     private modalService: NgbModal,
     private openDocumentService: OpenDocumentsService,
     private documentListViewService: DocumentListViewService,
+    private legalEntityService: LegalEntityService,
     private documentTitlePipe: DocumentTitlePipe,
     private toastService: ToastService,
     private settings: SettingsService,
@@ -242,6 +250,11 @@ export class DocumentDetailComponent
       .listAll()
       .pipe(first(), takeUntil(this.unsubscribeNotifier))
       .subscribe((result) => (this.documentTypes = result.results))
+    
+      this.legalEntityService
+      .listAll()
+      .pipe(first(), takeUntil(this.unsubscribeNotifier))
+      .subscribe((result) => (this.legal_entities = result.results))
 
     this.storagePathService
       .listAll()
@@ -338,7 +351,9 @@ export class DocumentDetailComponent
             title: doc.title,
             content: doc.content,
             created_date: doc.created_date,
+            due_date: doc.due_date,
             correspondent: doc.correspondent,
+            legal_entity: doc.legal_entity,
             document_type: doc.document_type,
             storage_path: doc.storage_path,
             archive_serial_number: doc.archive_serial_number,
@@ -525,6 +540,29 @@ export class DocumentDetailComponent
       .subscribe(({ newStoragePath, storagePaths }) => {
         this.storagePaths = storagePaths.results
         this.documentForm.get('storage_path').setValue(newStoragePath.id)
+      })
+  }
+
+  createLegalEntity(newName: string) {
+    var modal = this.modalService.open(LegalEntityEditDialogComponent, {
+      backdrop: 'static',
+    })
+    modal.componentInstance.dialogMode = EditDialogMode.CREATE
+    if (newName) modal.componentInstance.object = { name: newName }
+    modal.componentInstance.succeeded
+      .pipe(
+        switchMap((newLegalEntity) => {
+          return this.legalEntityService
+            .listAll()
+            .pipe(
+              map((legal_entities) => ({ newLegalEntity, legal_entities }))
+            )
+        })
+      )
+      .pipe(takeUntil(this.unsubscribeNotifier))
+      .subscribe(({ newLegalEntity, legal_entities }) => {
+        this.legal_entities = legal_entities.results
+        this.documentForm.get('legal_entity').setValue(newLegalEntity.id)
       })
   }
 

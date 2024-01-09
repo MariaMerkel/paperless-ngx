@@ -48,6 +48,14 @@
           (opened)="onCorrespondentDropdownOpen()"
           [documentCounts]="correspondentDocumentCounts"
         [allowSelectNone]="true"></pngx-filterable-dropdown>
+        <pngx-filterable-dropdown class="flex-fill" title="Legal entity" icon="person-fill" i18n-title
+          filterPlaceholder="Filter legal entities" i18n-filterPlaceholder
+          [items]="legalEntities"
+          [(selectionModel)]="legalEntitySelectionModel"
+          (selectionModelChange)="updateRules()"
+          (opened)="onLegalEntityDropdownOpen()"
+          [documentCounts]="legalEntityDocumentCounts"
+        [allowSelectNone]="true"></pngx-filterable-dropdown>
         <pngx-filterable-dropdown class="flex-fill" title="Document type" icon="file-earmark-fill" i18n-title
           filterPlaceholder="Filter document types" i18n-filterPlaceholder
           [items]="documentTypes"

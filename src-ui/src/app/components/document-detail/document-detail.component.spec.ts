@@ -24,6 +24,7 @@ import { routes } from 'src/app/app-routing.module'
 import {
   FILTER_FULLTEXT_MORELIKE,
   FILTER_CORRESPONDENT,
+  FILTER_LEGAL_ENTITY,
   FILTER_DOCUMENT_TYPE,
   FILTER_STORAGE_PATH,
   FILTER_HAS_TAGS_ALL,
@@ -35,6 +36,9 @@ import { Document } from 'src/app/data/document'
 import { DocumentType } from 'src/app/data/document-type'
 import { StoragePath } from 'src/app/data/storage-path'
 import { Tag } from 'src/app/data/tag'
+import { LegalEntity } from 'src/app/data/legalentity'
+import { LegalEntityService } from 'src/app/services/rest/legalentity.service'
+import { LegalEntityEditDialogComponent } from '../common/edit-dialog/legalentity-edit-dialog/legalentity-edit-dialog.component'
 import { IfOwnerDirective } from 'src/app/directives/if-owner.directive'
 import { IfPermissionsDirective } from 'src/app/directives/if-permissions.directive'
 import { PermissionsGuard } from 'src/app/guards/permissions.guard'
@@ -75,12 +79,14 @@ const doc: Document = {
   id: 3,
   title: 'Doc 3',
   correspondent: 11,
+  legalentity: 11,
   document_type: 21,
   storage_path: 31,
   tags: [41, 42, 43],
   content: 'text content',
   added: new Date(),
   created: new Date(),
+  due_date: new Date(),
   archive_serial_number: null,
   original_file_name: 'file.pdf',
   owner: null,
@@ -154,6 +160,7 @@ describe('DocumentDetailComponent', () => {
         DocumentNotesComponent,
         CustomDatePipe,
         DocumentTypeEditDialogComponent,
+        LegalEntityEditDialogComponent,
         CorrespondentEditDialogComponent,
         StoragePathEditDialogComponent,
         IfOwnerDirective,
@@ -176,6 +183,20 @@ describe('DocumentDetailComponent', () => {
                   {
                     id: 11,
                     name: 'Correspondent11',
+                  },
+                ],
+              }),
+          },
+        },
+        {
+          provide: LegalEntityService,
+          useValue: {
+            listAll: () =>
+              of({
+                results: [
+                  {
+                    id: 11,
+                    name: 'LegalEntity11',
                   },
                 ],
               }),
@@ -347,6 +368,20 @@ describe('DocumentDetailComponent', () => {
     expect(modalSpy).toHaveBeenCalled()
     openModal.componentInstance.succeeded.next({ id: 12, name: 'NewDocType12' })
     expect(component.documentForm.get('document_type').value).toEqual(12)
+  })
+
+  it('should support creating a legal entity', () => {
+    initNormally()
+    let openModal: NgbModalRef
+    modalService.activeInstances.subscribe((modal) => (openModal = modal[0]))
+    const modalSpy = jest.spyOn(modalService, 'open')
+    component.createLegalEntity('NewLegalEntity12')
+    expect(modalSpy).toHaveBeenCalled()
+    openModal.componentInstance.succeeded.next({
+      id: 12,
+      name: 'NewLegalEntity12',
+    })
+    expect(component.documentForm.get('legalentity').value).toEqual(12)
   })
 
   it('should support creating correspondent', () => {
@@ -738,6 +773,23 @@ describe('DocumentDetailComponent', () => {
     expect(qfSpy).toHaveBeenCalledWith([
       {
         rule_type: FILTER_CORRESPONDENT,
+        value: object.id.toString(),
+      },
+    ])
+  })
+
+  it('should support quick filtering by legal entity', () => {
+    initNormally()
+    const object = {
+      id: 22,
+      name: 'LegalEntity22',
+      last_correspondence: new Date().toISOString(),
+    } as LegalEntity
+    const qfSpy = jest.spyOn(documentListViewService, 'quickFilter')
+    component.filterDocuments([object])
+    expect(qfSpy).toHaveBeenCalledWith([
+      {
+        rule_type: FILTER_LEGALENTITY,
         value: object.id.toString(),
       },
     ])

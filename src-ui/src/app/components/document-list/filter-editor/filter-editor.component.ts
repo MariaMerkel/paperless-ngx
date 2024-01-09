@@ -12,10 +12,12 @@ import { Tag } from 'src/app/data/tag'
 import { Correspondent } from 'src/app/data/correspondent'
 import { DocumentType } from 'src/app/data/document-type'
 import { Subject, Subscription } from 'rxjs'
+import { LegalEntity } from 'src/app/data/legalentity'
 import { debounceTime, distinctUntilChanged, filter } from 'rxjs/operators'
 import { DocumentTypeService } from 'src/app/services/rest/document-type.service'
 import { TagService } from 'src/app/services/rest/tag.service'
 import { CorrespondentService } from 'src/app/services/rest/correspondent.service'
+import { LegalEntityService } from 'src/app/services/rest/legalentity.service'
 import { FilterRule } from 'src/app/data/filter-rule'
 import { filterRulesDiffer } from 'src/app/utils/filter-rules'
 import {
@@ -23,6 +25,7 @@ import {
   FILTER_ADDED_BEFORE,
   FILTER_ASN,
   FILTER_HAS_CORRESPONDENT_ANY,
+  FILTER_HAS_LEGAL_ENTITY_ANY,
   FILTER_CREATED_AFTER,
   FILTER_CREATED_BEFORE,
   FILTER_HAS_DOCUMENT_TYPE_ANY,
@@ -39,10 +42,12 @@ import {
   FILTER_ASN_GT,
   FILTER_ASN_LT,
   FILTER_DOES_NOT_HAVE_CORRESPONDENT,
+  FILTER_DOES_NOT_HAVE_LEGAL_ENTITY,
   FILTER_DOES_NOT_HAVE_DOCUMENT_TYPE,
   FILTER_DOES_NOT_HAVE_STORAGE_PATH,
   FILTER_DOCUMENT_TYPE,
   FILTER_CORRESPONDENT,
+  FILTER_LEGAL_ENTITY,
   FILTER_STORAGE_PATH,
   FILTER_OWNER,
   FILTER_OWNER_DOES_NOT_INCLUDE,
@@ -170,6 +175,16 @@ export class FilterEditorComponent implements OnInit, OnDestroy {
             return $localize`Without correspondent`
           }
 
+        case FILTER_LEGAL_ENTITY:
+        case FILTER_HAS_LEGAL_ENTITY_ANY:
+          if (rule.value) {
+            return $localize`Legal entity: ${this.correspondents.find(
+              (c) => c.id == +rule.value
+            )?.name}`
+          } else {
+            return $localize`Without legal entity`
+          }
+
         case FILTER_DOCUMENT_TYPE:
         case FILTER_HAS_DOCUMENT_TYPE_ANY:
           if (rule.value) {
@@ -224,6 +239,7 @@ export class FilterEditorComponent implements OnInit, OnDestroy {
     private tagService: TagService,
     private correspondentService: CorrespondentService,
     private documentService: DocumentService,
+    private legalEntityService: LegalEntityService,
     private storagePathService: StoragePathService
   ) {}
 
@@ -232,11 +248,13 @@ export class FilterEditorComponent implements OnInit, OnDestroy {
 
   tags: Tag[] = []
   correspondents: Correspondent[] = []
+  legalEntities: LegalEntity[] = []
   documentTypes: DocumentType[] = []
   storagePaths: StoragePath[] = []
 
   tagDocumentCounts: SelectionDataItem[]
   correspondentDocumentCounts: SelectionDataItem[]
+  legalEntityDocumentCounts: SelectionDataItem[]
   documentTypeDocumentCounts: SelectionDataItem[]
   storagePathDocumentCounts: SelectionDataItem[]
 
@@ -274,6 +292,7 @@ export class FilterEditorComponent implements OnInit, OnDestroy {
 
   tagSelectionModel = new FilterableDropdownSelectionModel()
   correspondentSelectionModel = new FilterableDropdownSelectionModel()
+  legalEntitySelectionModel = new FilterableDropdownSelectionModel()
   documentTypeSelectionModel = new FilterableDropdownSelectionModel()
   storagePathSelectionModel = new FilterableDropdownSelectionModel()
 
@@ -310,6 +329,7 @@ export class FilterEditorComponent implements OnInit, OnDestroy {
     this.storagePathSelectionModel.clear(false)
     this.tagSelectionModel.clear(false)
     this.correspondentSelectionModel.clear(false)
+    this.legalEntitySelectionModel.clear(false)
     this._textFilter = null
     this._moreLikeId = null
     this.dateAddedBefore = null
@@ -433,6 +453,24 @@ export class FilterEditorComponent implements OnInit, OnDestroy {
         case FILTER_DOES_NOT_HAVE_CORRESPONDENT:
           this.correspondentSelectionModel.intersection = Intersection.Exclude
           this.correspondentSelectionModel.set(
+            rule.value ? +rule.value : null,
+            ToggleableItemState.Excluded,
+            false
+          )
+          break
+        case FILTER_LEGAL_ENTITY:
+        case FILTER_HAS_LEGAL_ENTITY_ANY:
+          this.legalEntitySelectionModel.logicalOperator = LogicalOperator.Or
+          this.legalEntitySelectionModel.intersection = Intersection.Include
+          this.legalEntitySelectionModel.set(
+            rule.value ? +rule.value : null,
+            ToggleableItemState.Selected,
+            false
+          )
+          break
+        case FILTER_DOES_NOT_HAVE_LEGAL_ENTITY:
+          this.legalEntitySelectionModel.intersection = Intersection.Exclude
+          this.legalEntitySelectionModel.set(
             rule.value ? +rule.value : null,
             ToggleableItemState.Excluded,
             false
@@ -602,6 +640,26 @@ export class FilterEditorComponent implements OnInit, OnDestroy {
         rule_type: FILTER_FULLTEXT_MORELIKE,
         value: this._moreLikeId.toString(),
       })
+    }
+    if (this.legalEntitySelectionModel.isNoneSelected()) {
+      filterRules.push({ rule_type: FILTER_LEGAL_ENTITY, value: null })
+    } else {
+      this.legalEntitySelectionModel
+        .getSelectedItems()
+        .forEach((legalEntity) => {
+          filterRules.push({
+            rule_type: FILTER_HAS_LEGAL_ENTITY_ANY,
+            value: legalEntity.id?.toString(),
+          })
+        })
+      this.legalEntitySelectionModel
+        .getExcludedItems()
+        .forEach((legalEntity) => {
+          filterRules.push({
+            rule_type: FILTER_DOES_NOT_HAVE_LEGAL_ENTITY,
+            value: legalEntity.id?.toString(),
+          })
+        })
     }
     if (this.tagSelectionModel.isNoneSelected()) {
       filterRules.push({ rule_type: FILTER_HAS_ANY_TAG, value: 'false' })
@@ -850,6 +908,8 @@ export class FilterEditorComponent implements OnInit, OnDestroy {
       selectionData?.selected_document_types ?? null
     this.correspondentDocumentCounts =
       selectionData?.selected_correspondents ?? null
+    this.legalEntityDocumentCounts =
+      selectionData?.selected_legal_entities ?? null
     this.storagePathDocumentCounts =
       selectionData?.selected_storage_paths ?? null
   }
@@ -878,6 +938,9 @@ export class FilterEditorComponent implements OnInit, OnDestroy {
     this.correspondentService
       .listAll()
       .subscribe((result) => (this.correspondents = result.results))
+    this.legalEntityService
+      .listAll()
+      .subscribe((result) => (this.legalEntities = result.results))
     this.documentTypeService
       .listAll()
       .subscribe((result) => (this.documentTypes = result.results))
@@ -915,6 +978,10 @@ export class FilterEditorComponent implements OnInit, OnDestroy {
   toggleCorrespondent(correspondentId: number) {
     this.correspondentSelectionModel.toggle(correspondentId)
   }
+  
+  toggleLegalEntity(legalEntityId: number) {
+    this.legalEntitySelectionModel.toggle(legalEntityId)
+  }
 
   toggleDocumentType(documentTypeId: number) {
     this.documentTypeSelectionModel.toggle(documentTypeId)
@@ -930,6 +997,10 @@ export class FilterEditorComponent implements OnInit, OnDestroy {
 
   onCorrespondentDropdownOpen() {
     this.correspondentSelectionModel.apply()
+  }
+
+  onLegalEntityDropdownOpen() {
+    this.legalEntitySelectionModel.apply()
   }
 
   onDocumentTypeDropdownOpen() {

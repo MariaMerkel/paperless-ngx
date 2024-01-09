@@ -8,6 +8,7 @@ import { Results } from 'src/app/data/results'
 import { FilterRule } from 'src/app/data/filter-rule'
 import { map, tap } from 'rxjs/operators'
 import { CorrespondentService } from './correspondent.service'
+import { LegalEntityService } from './legalentity.service'
 import { DocumentTypeService } from './document-type.service'
 import { TagService } from './tag.service'
 import { DocumentSuggestions } from 'src/app/data/document-suggestions'
@@ -17,9 +18,11 @@ import { StoragePathService } from './storage-path.service'
 export const DOCUMENT_SORT_FIELDS = [
   { field: 'archive_serial_number', name: $localize`ASN` },
   { field: 'correspondent__name', name: $localize`Correspondent` },
+  { field: 'legal_entity__name', name: $localize`Legal entity` },
   { field: 'title', name: $localize`Title` },
   { field: 'document_type__name', name: $localize`Document type` },
   { field: 'created', name: $localize`Created` },
+  { field: 'due_date', name: $localize`Due date` },
   { field: 'added', name: $localize`Added` },
   { field: 'modified', name: $localize`Modified` },
   { field: 'num_notes', name: $localize`Notes` },
@@ -41,6 +44,7 @@ export interface SelectionDataItem {
 
 export interface SelectionData {
   selected_storage_paths: SelectionDataItem[]
+  selected_legal_entities: SelectionDataItem[]
   selected_correspondents: SelectionDataItem[]
   selected_tags: SelectionDataItem[]
   selected_document_types: SelectionDataItem[]
@@ -56,6 +60,7 @@ export class DocumentService extends AbstractPaperlessService<Document> {
     http: HttpClient,
     private correspondentService: CorrespondentService,
     private documentTypeService: DocumentTypeService,
+    private legalEntityService: LegalEntityService,
     private tagService: TagService,
     private storagePathService: StoragePathService
   ) {
@@ -66,6 +71,11 @@ export class DocumentService extends AbstractPaperlessService<Document> {
     if (doc.correspondent) {
       doc.correspondent$ = this.correspondentService.getCached(
         doc.correspondent
+      )
+    }
+    if (doc.legal_entity$) {
+      doc.legal_entity$ = this.legalEntityService.getCached(
+        doc.legal_entity
       )
     }
     if (doc.document_type) {

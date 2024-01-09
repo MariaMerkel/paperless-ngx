@@ -37,6 +37,10 @@
         @if (showCorrespondentField) {
           <pngx-input-select i18n-title title="Assign correspondent" [items]="correspondents" [allowNull]="true" formControlName="assign_correspondent"></pngx-input-select>
         }
+        <pngx-input-select i18n-title title="Assign legal entity from" [items]="metadataLegalEntityOptions" formControlName="assign_legal_entity_from"></pngx-input-select>
+        @if (showLegalEntityField) {
+          <pngx-input-select *ngIf="showLegalEntityField" i18n-title title="Assign legal entity" [items]="legal_entities" [allowNull]="true" formControlName="assign_legal_entity"></pngx-input-select>
+        }
         <pngx-input-check i18n-title title="Assign owner from rule" formControlName="assign_owner_from_rule"></pngx-input-check>
       </div>
     </div>

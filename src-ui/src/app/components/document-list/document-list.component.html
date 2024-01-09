@@ -139,7 +139,7 @@
     @if (displayMode === 'largeCards') {
       <div>
         @for (d of list.documents; track trackByDocumentId($index, d)) {
-          <pngx-document-card-large [selected]="list.isSelected(d)" (toggleSelected)="toggleSelected(d, $event)" (dblClickDocument)="openDocumentDetail(d)" [document]="d" (clickTag)="clickTag($event)" (clickCorrespondent)="clickCorrespondent($event)" (clickDocumentType)="clickDocumentType($event)" (clickStoragePath)="clickStoragePath($event)" (clickMoreLike)="clickMoreLike(d.id)">
+          <pngx-document-card-large [selected]="list.isSelected(d)" (toggleSelected)="toggleSelected(d, $event)" (dblClickDocument)="openDocumentDetail(d)" [document]="d" (clickTag)="clickTag($event)" (clickLegalEntity)="clickLegalEntity($event)" (clickCorrespondent)="clickCorrespondent($event)" (clickDocumentType)="clickDocumentType($event)" (clickStoragePath)="clickStoragePath($event)" (clickMoreLike)="clickMoreLike(d.id)">
           </pngx-document-card-large>
         }
       </div>
@@ -162,6 +162,13 @@
             [currentSortReverse]="list.sortReverse"
             (sort)="onSort($event)"
           i18n>Correspondent</th>
+          <th class="d-none d-md-table-cell"
+            pngxSortable="legal_entity__name"
+            title="Sort by legal entity" i18n-title
+            [currentSortField]="list.sortField"
+            [currentSortReverse]="list.sortReverse"
+            (sort)="onSort($event)"
+          i18n>Legal entity</th>
           <th
             pngxSortable="title"
             title="Sort by title" i18n-title
@@ -207,6 +214,13 @@
             [currentSortReverse]="list.sortReverse"
             (sort)="onSort($event)"
           i18n>Created</th>
+          <th
+            pngxSortable="due_date"
+            title="Sort by due date" i18n-title
+            [currentSortField]="list.sortField"
+            [currentSortReverse]="list.sortReverse"
+            (sort)="onSort($event)"
+          i18n>Due date</th>
           <th class="d-none d-xl-table-cell"
             pngxSortable="added"
             title="Sort by added date" i18n-title
@@ -230,6 +244,11 @@
               <td class="d-none d-md-table-cell">
                 @if (d.correspondent) {
                   <a (click)="clickCorrespondent(d.correspondent);$event.stopPropagation()" title="Filter by correspondent" i18n-title>{{(d.correspondent$ | async)?.name}}</a>
+                }
+              </td>
+              <td class="d-none d-md-table-cell">
+                @if (d.correspondent) {
+                  <a (click)="clickLegalEntity(d.legal_entity);$event.stopPropagation()" title="Filter by legal entity" i18n-title>{{(d.legal_entity$ | async)?.name}}</a>
                 }
               </td>
               <td>
@@ -278,7 +297,7 @@
     @if (displayMode === 'smallCards') {
       <div class="row row-cols-paperless-cards">
         @for (d of list.documents; track trackByDocumentId($index, d)) {
-          <pngx-document-card-small class="p-0" [selected]="list.isSelected(d)" (toggleSelected)="toggleSelected(d, $event)" (dblClickDocument)="openDocumentDetail(d)" [document]="d" (clickTag)="clickTag($event)" (clickCorrespondent)="clickCorrespondent($event)" (clickStoragePath)="clickStoragePath($event)" (clickDocumentType)="clickDocumentType($event)"></pngx-document-card-small>
+          <pngx-document-card-small class="p-0" [selected]="list.isSelected(d)" (toggleSelected)="toggleSelected(d, $event)" (dblClickDocument)="openDocumentDetail(d)" [document]="d" (clickTag)="clickTag($event)" (clickLegalEntity)="clickLegalEntity($event)" (clickCorrespondent)="clickCorrespondent($event)" (clickStoragePath)="clickStoragePath($event)" (clickDocumentType)="clickDocumentType($event)"></pngx-document-card-small>
         }
       </div>
     }

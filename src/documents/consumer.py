@@ -31,6 +31,7 @@ from documents.models import ConsumptionTemplate
 from documents.models import Correspondent
 from documents.models import CustomField
 from documents.models import CustomFieldInstance
+from documents.models import LegalEntity
 from documents.models import Document
 from documents.models import DocumentType
 from documents.models import FileInfo
@@ -121,6 +122,7 @@ class Consumer(LoggingMixin):
         self.filename = None
         self.override_title = None
         self.override_correspondent_id = None
+        self.override_legal_entity_id = None
         self.override_tag_ids = None
         self.override_document_type_id = None
         self.override_asn = None
@@ -264,6 +266,7 @@ class Consumer(LoggingMixin):
 
         script_env["DOCUMENT_ID"] = str(document.pk)
         script_env["DOCUMENT_CREATED"] = str(document.created)
+        script_env["DOCUMENT_DUE_DATE"] = str(document.due_date)
         script_env["DOCUMENT_MODIFIED"] = str(document.modified)
         script_env["DOCUMENT_ADDED"] = str(document.added)
         script_env["DOCUMENT_FILE_NAME"] = document.get_public_filename()
@@ -283,6 +286,7 @@ class Consumer(LoggingMixin):
             kwargs={"pk": document.pk},
         )
         script_env["DOCUMENT_CORRESPONDENT"] = str(document.correspondent)
+        script_env["DOCUMENT_LEGAL_ENTITY"] = str(document.legal_entity)
         script_env["DOCUMENT_TAGS"] = str(
             ",".join(document.tags.all().values_list("name", flat=True)),
         )
@@ -300,6 +304,7 @@ class Consumer(LoggingMixin):
                     reverse("document-download", kwargs={"pk": document.pk}),
                     reverse("document-thumb", kwargs={"pk": document.pk}),
                     str(document.correspondent),
+                    str(document.legal_entity), # this would break compatibility but this won't be an issue in this case
                     str(",".join(document.tags.all().values_list("name", flat=True))),
                 ],
                 env=script_env,
@@ -325,11 +330,13 @@ class Consumer(LoggingMixin):
         override_filename=None,
         override_title=None,
         override_correspondent_id=None,
+        override_legal_entity_id=None,
         override_document_type_id=None,
         override_tag_ids=None,
         override_storage_path_id=None,
         task_id=None,
         override_created=None,
+        override_due_date=None,
         override_asn=None,
         override_owner_id=None,
         override_view_users=None,
@@ -346,11 +353,13 @@ class Consumer(LoggingMixin):
         self.filename = override_filename or self.path.name
         self.override_title = override_title
         self.override_correspondent_id = override_correspondent_id
+        self.override_legal_entity_id = override_legal_entity_id
         self.override_document_type_id = override_document_type_id
         self.override_tag_ids = override_tag_ids
         self.override_storage_path_id = override_storage_path_id
         self.task_id = task_id or str(uuid.uuid4())
         self.override_created = override_created
+        self.override_due_date = override_due_date
         self.override_asn = override_asn
         self.override_owner_id = override_owner_id
         self.override_view_users = override_view_users
@@ -752,6 +761,10 @@ class Consumer(LoggingMixin):
         if self.override_correspondent_id:
             document.correspondent = Correspondent.objects.get(
                 pk=self.override_correspondent_id,
+            )
+        if self.override_legal_entity_id:
+            document.legal_entity = LegalEntity.objects.get(
+                pk=self.override_legal_entity_id,
             )
 
         if self.override_document_type_id:

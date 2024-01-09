@@ -8,6 +8,7 @@ from documents.models import CustomFieldInstance
 from documents.models import Document
 from documents.models import DocumentType
 from documents.models import Note
+from documents.models import LegalEntity
 from documents.models import PaperlessTask
 from documents.models import SavedView
 from documents.models import SavedViewFilterRule
@@ -25,6 +26,10 @@ class CorrespondentAdmin(GuardedModelAdmin):
     list_filter = ("matching_algorithm",)
     list_editable = ("match", "matching_algorithm")
 
+class LegalEntityAdmin(GuardedModelAdmin):
+    list_display = ("name", "match", "matching_algorithm")
+    list_filter = ("matching_algorithm",)
+    list_editable = ("match", "matching_algorithm")
 
 class TagAdmin(GuardedModelAdmin):
     list_display = ("name", "color", "match", "matching_algorithm")
@@ -191,6 +196,7 @@ admin.site.register(DocumentType, DocumentTypeAdmin)
 admin.site.register(Document, DocumentAdmin)
 admin.site.register(SavedView, SavedViewAdmin)
 admin.site.register(StoragePath, StoragePathAdmin)
+admin.site.register(LegalEntity, LegalEntityAdmin)
 admin.site.register(PaperlessTask, TaskAdmin)
 admin.site.register(Note, NotesAdmin)
 admin.site.register(ShareLink, ShareLinksAdmin)

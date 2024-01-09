@@ -49,6 +49,30 @@ export const FILTER_SHARED_BY_USER = 37
 
 export const FILTER_CUSTOM_FIELDS = 36
 
+export const FILTER_LEGAL_ENTITY = 38
+export const FILTER_HAS_LEGAL_ENTITY_ANY = 39
+export const FILTER_DOES_NOT_HAVE_LEGAL_ENTITY = 40
+
+export const FILTER_DUE_DATE_BEFORE = 41
+export const FILTER_DUE_DATE_AFTER = 42
+export const FILTER_DUE_DATE_YEAR = 43
+export const FILTER_DUE_DATE_MONTH = 44
+export const FILTER_DUE_DATE_DAY = 45
+
+
+/*
+additions by HBvdG:
+(38, _("legal entity is")),
+(39, _("has legal entity in")),
+(40, _("does not have legal entity in")),
+(41, _("due date before")),
+(42, _("due date after")),
+(43, _("due date year is")),
+(44, _("due date month is")),
+(45, _("due date day is"))
+this _may_ conflict if upstream adds more filters. watch out for that, amend migrations if needed.
+*/
+
 export const FILTER_RULE_TYPES: FilterRuleType[] = [
   {
     id: FILTER_TITLE,
@@ -69,6 +93,25 @@ export const FILTER_RULE_TYPES: FilterRuleType[] = [
     filtervar: 'archive_serial_number',
     datatype: 'number',
     multi: false,
+  },
+  {
+    id: FILTER_LEGAL_ENTITY,
+    filtervar: 'legal_entity__id',
+    isnull_filtervar: 'legal_entity__isnull',
+    datatype: 'legal_entity',
+    multi: false,
+  },
+  {
+    id: FILTER_HAS_LEGAL_ENTITY_ANY,
+    filtervar: 'legal_entity__id__in',
+    datatype: 'legal_entity',
+    multi: true,
+  },
+  {
+    id: FILTER_DOES_NOT_HAVE_LEGAL_ENTITY,
+    filtervar: 'legal_entity__id__none',
+    datatype: 'legal_entity',
+    multi: true,
   },
   {
     id: FILTER_CORRESPONDENT,
@@ -189,7 +232,36 @@ export const FILTER_RULE_TYPES: FilterRuleType[] = [
     datatype: 'number',
     multi: false,
   },
-
+  {
+    id: FILTER_DUE_DATE_BEFORE,
+    filtervar: 'due_date__lt',
+    datatype: 'date',
+    multi: false,
+  },
+  {
+    id: FILTER_DUE_DATE_AFTER,
+    filtervar: 'due_date__gt',
+    datatype: 'date',
+    multi: false,
+  },
+  {
+    id: FILTER_DUE_DATE_YEAR,
+    filtervar: 'due_date__year',
+    datatype: 'number',
+    multi: false,
+  },
+  {
+    id: FILTER_DUE_DATE_MONTH,
+    filtervar: 'due_date__month',
+    datatype: 'number',
+    multi: false,
+  },
+  {
+    id: FILTER_DUE_DATE_DAY,
+    filtervar: 'due_date__day',
+    datatype: 'number',
+    multi: false,
+  },
   {
     id: FILTER_ADDED_BEFORE,
     filtervar: 'added__date__lt',

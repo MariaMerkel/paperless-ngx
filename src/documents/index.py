@@ -53,6 +53,9 @@ def get_schema():
         correspondent=TEXT(sortable=True),
         correspondent_id=NUMERIC(),
         has_correspondent=BOOLEAN(),
+        legal_entity=TEXT(sortable=True),
+        legal_entity_id=NUMERIC(),
+        has_legal_entity=BOOLEAN(),
         tag=KEYWORD(commas=True, scorable=True, lowercase=True),
         tag_id=KEYWORD(commas=True, scorable=True),
         has_tag=BOOLEAN(),
@@ -60,6 +63,7 @@ def get_schema():
         type_id=NUMERIC(),
         has_type=BOOLEAN(),
         created=DATETIME(sortable=True),
+        due_date=DATETIME(sortable=True),
         modified=DATETIME(sortable=True),
         added=DATETIME(sortable=True),
         path=TEXT(sortable=True),
@@ -145,6 +149,9 @@ def update_document(writer: AsyncWriter, doc: Document):
         correspondent=doc.correspondent.name if doc.correspondent else None,
         correspondent_id=doc.correspondent.id if doc.correspondent else None,
         has_correspondent=doc.correspondent is not None,
+        legal_entity=doc.legal_entity.name if doc.legal_entity else None,
+        legal_entity_id=doc.legal_entity.id if doc.legal_entity else None,
+        has_legal_entity=doc.legal_entity is not None,
         tag=tags if tags else None,
         tag_id=tags_ids if tags_ids else None,
         has_tag=len(tags) > 0,
@@ -193,6 +200,7 @@ def remove_document_from_index(document: Document):
 class DelayedQuery:
     param_map = {
         "correspondent": ("correspondent", ["id", "id__in", "id__none", "isnull"]),
+        "legal_entity": ("legal_entity", ["id", "id__in", "id__none", "isnull"]),
         "document_type": ("type", ["id", "id__in", "id__none", "isnull"]),
         "storage_path": ("path", ["id", "id__in", "id__none", "isnull"]),
         "owner": ("owner", ["id", "id__in", "id__none", "isnull"]),
@@ -200,6 +208,7 @@ class DelayedQuery:
         "tags": ("tag", ["id__all", "id__in", "id__none"]),
         "added": ("added", ["date__lt", "date__gt"]),
         "created": ("created", ["date__lt", "date__gt"]),
+        "due_date": ("due_date", ["date__lt", "date__gt"]),
         "checksum": ("checksum", ["icontains", "istartswith"]),
         "original_filename": ("original_filename", ["icontains", "istartswith"]),
         "custom_fields": ("custom_fields", ["icontains", "istartswith"]),
@@ -298,10 +307,12 @@ class DelayedQuery:
 
         sort_fields_map = {
             "created": "created",
+            "due_date": "due_date",
             "modified": "modified",
             "added": "added",
             "title": "title",
             "correspondent__name": "correspondent",
+            "legal_entity__name": "legal_entity",
             "document_type__name": "type",
             "archive_serial_number": "asn",
             "num_notes": "num_notes",
@@ -392,6 +403,7 @@ class DelayedFullTextQuery(DelayedQuery):
                 "content",
                 "title",
                 "correspondent",
+                "legal_entity",
                 "tag",
                 "type",
                 "notes",
@@ -446,6 +458,9 @@ def autocomplete(
     and without scoring
     """
     terms = []
+    term_queried = term
+    # the term variable is shadowed later, as we want to return the original term back to the user copy it into term_queried
+    # doing it like this makes it easier to update this repo with upstream
 
     with ix.searcher(weighting=TF_IDF()) as s:
         qp = QueryParser("content", schema=ix.schema)
@@ -467,7 +482,8 @@ def autocomplete(
                 for _, term in hit.matched_terms():
                     termCounts[term] += 1
             terms = [t for t, _ in termCounts.most_common(limit)]
-
+    terms = [term_queried] + terms
+    # prepend the queried term
     return terms
 
 

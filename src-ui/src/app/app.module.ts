@@ -14,6 +14,7 @@ import { DashboardComponent } from './components/dashboard/dashboard.component'
 import { TagListComponent } from './components/manage/tag-list/tag-list.component'
 import { DocumentTypeListComponent } from './components/manage/document-type-list/document-type-list.component'
 import { CorrespondentListComponent } from './components/manage/correspondent-list/correspondent-list.component'
+import { LegalEntityListComponent } from './components/manage/legalentity-list/legalentity-list.component'
 import { LogsComponent } from './components/admin/logs/logs.component'
 import { SettingsComponent } from './components/admin/settings/settings.component'
 import { FormsModule, ReactiveFormsModule } from '@angular/forms'
@@ -21,6 +22,7 @@ import { DatePipe, registerLocaleData } from '@angular/common'
 import { NotFoundComponent } from './components/not-found/not-found.component'
 import { ConfirmDialogComponent } from './components/common/confirm-dialog/confirm-dialog.component'
 import { CorrespondentEditDialogComponent } from './components/common/edit-dialog/correspondent-edit-dialog/correspondent-edit-dialog.component'
+import { LegalEntityEditDialogComponent } from './components/common/edit-dialog/legalentity-edit-dialog/legalentity-edit-dialog.component'
 import { TagEditDialogComponent } from './components/common/edit-dialog/tag-edit-dialog/tag-edit-dialog.component'
 import { DocumentTypeEditDialogComponent } from './components/common/edit-dialog/document-type-edit-dialog/document-type-edit-dialog.component'
 import { TagComponent } from './components/common/tag/tag.component'
@@ -185,11 +187,13 @@ function initializeApp(settings: SettingsService) {
     TagListComponent,
     DocumentTypeListComponent,
     CorrespondentListComponent,
+    LegalEntityListComponent,
     StoragePathListComponent,
     LogsComponent,
     SettingsComponent,
     NotFoundComponent,
     CorrespondentEditDialogComponent,
+    LegalEntityEditDialogComponent,
     ConfirmDialogComponent,
     TagEditDialogComponent,
     DocumentTypeEditDialogComponent,

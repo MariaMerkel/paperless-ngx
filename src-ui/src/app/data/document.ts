@@ -1,4 +1,5 @@
 import { Correspondent } from './correspondent'
+import { LegalEntity } from './legalentity'
 import { Tag } from './tag'
 import { DocumentType } from './document-type'
 import { Observable } from 'rxjs'
@@ -19,6 +20,10 @@ export interface Document extends ObjectWithPermissions {
   correspondent$?: Observable<Correspondent>
 
   correspondent?: number
+
+  legal_entity$?: Observable<LegalEntity>
+
+  legal_entity?: number
 
   document_type$?: Observable<DocumentType>
 
@@ -43,6 +48,8 @@ export interface Document extends ObjectWithPermissions {
 
   // localized date
   created_date?: Date
+
+  due_date?: Date
 
   modified?: Date
 
