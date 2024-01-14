@@ -11,6 +11,9 @@ $grid-breakpoints: (
   xxxl: 2400px
 );
 
+$form-file-button-bg: var(--bs-body-bg);
+$form-file-button-hover-bg: var(--pngx-bg-alt);
+
 @import "node_modules/bootstrap/scss/bootstrap";
 @import "theme";
 @import "~@ng-select/ng-select/themes/default.theme.css";
@@ -647,8 +650,6 @@ code {
 }
 
 .accordion {
-  --bs-accordion-btn-padding-x: 0.75rem;
-  --bs-accordion-btn-padding-y: 0.375rem;
   --bs-accordion-btn-bg: var(--bs-light);
   --bs-accordion-btn-color: var(--bs-primary);
   --bs-accordion-color: var(--bs-body-color);

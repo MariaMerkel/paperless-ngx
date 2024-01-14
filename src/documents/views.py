@@ -67,6 +67,7 @@ from documents.data_models import DocumentMetadataOverrides
 from documents.data_models import DocumentSource
 from documents.filters import CorrespondentFilterSet
 from documents.filters import LegalEntityFilterSet
+from documents.filters import CustomFieldFilterSet
 from documents.filters import DocumentFilterSet
 from documents.filters import DocumentTypeFilterSet
 from documents.filters import ObjectOwnedOrGrantedPermissionsFilter
@@ -78,7 +79,6 @@ from documents.matching import match_legal_entities
 from documents.matching import match_document_types
 from documents.matching import match_storage_paths
 from documents.matching import match_tags
-from documents.models import ConsumptionTemplate
 from documents.models import Correspondent
 from documents.models import LegalEntity
 from documents.models import CustomField
@@ -90,6 +90,9 @@ from documents.models import SavedView
 from documents.models import ShareLink
 from documents.models import StoragePath
 from documents.models import Tag
+from documents.models import Workflow
+from documents.models import WorkflowAction
+from documents.models import WorkflowTrigger
 from documents.parsers import get_parser_class_for_mime_type
 from documents.parsers import parse_date_generator
 from documents.permissions import PaperlessAdminPermissions
@@ -101,7 +104,6 @@ from documents.serialisers import AcknowledgeTasksViewSerializer
 from documents.serialisers import BulkDownloadSerializer
 from documents.serialisers import BulkEditObjectPermissionsSerializer
 from documents.serialisers import BulkEditSerializer
-from documents.serialisers import ConsumptionTemplateSerializer
 from documents.serialisers import CorrespondentSerializer
 from documents.serialisers import LegalEntitySerializer
 from documents.serialisers import CustomFieldSerializer
@@ -116,8 +118,13 @@ from documents.serialisers import TagSerializer
 from documents.serialisers import TagSerializerVersion1
 from documents.serialisers import TasksViewSerializer
 from documents.serialisers import UiSettingsViewSerializer
+from documents.serialisers import WorkflowActionSerializer
+from documents.serialisers import WorkflowSerializer
+from documents.serialisers import WorkflowTriggerSerializer
+from documents.signals import document_updated
 from documents.tasks import consume_file
 from paperless import version
+from paperless.config import GeneralConfig
 from paperless.db import GnuPG
 from paperless.views import StandardPagination
 
@@ -351,6 +358,12 @@ class DocumentViewSet(
         from documents import index
 
         index.add_or_update_document(self.get_object())
+
+        document_updated.send(
+            sender=self.__class__,
+            document=self.get_object(),
+        )
+
         return response
 
     def destroy(self, request, *args, **kwargs):
@@ -873,6 +886,7 @@ class PostDocumentView(GenericAPIView):
         correspondent_id = serializer.validated_data.get("correspondent")
         legal_entity_id = serializer.validated_data.get("legal_entity")
         document_type_id = serializer.validated_data.get("document_type")
+        storage_path_id = serializer.validated_data.get("storage_path")
         tag_ids = serializer.validated_data.get("tags")
         title = serializer.validated_data.get("title")
         created = serializer.validated_data.get("created")
@@ -901,6 +915,7 @@ class PostDocumentView(GenericAPIView):
             correspondent_id=correspondent_id,
             legal_entity_id=legal_entity_id,
             document_type_id=document_type_id,
+            storage_path_id=storage_path_id,
             tag_ids=tag_ids,
             created=created,
             due_date=due_date,
@@ -1197,6 +1212,16 @@ class UiSettingsView(GenericAPIView):
             ui_settings["update_checking"] = {
                 "backend_setting": settings.ENABLE_UPDATE_CHECK,
             }
+
+        general_config = GeneralConfig()
+
+        ui_settings["app_title"] = settings.APP_TITLE
+        if general_config.app_title is not None and len(general_config.app_title) > 0:
+            ui_settings["app_title"] = general_config.app_title
+        ui_settings["app_logo"] = settings.APP_LOGO
+        if general_config.app_logo is not None and len(general_config.app_logo) > 0:
+            ui_settings["app_logo"] = general_config.app_logo
+
         user_resp = {
             "id": user.id,
             "username": user.username,
@@ -1420,25 +1445,50 @@ class BulkEditObjectPermissionsView(GenericAPIView, PassUserMixin):
             )
 
 
-class ConsumptionTemplateViewSet(ModelViewSet):
+class WorkflowTriggerViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated, PaperlessObjectPermissions)
 
-    serializer_class = ConsumptionTemplateSerializer
+    serializer_class = WorkflowTriggerSerializer
     pagination_class = StandardPagination
 
-    model = ConsumptionTemplate
+    model = WorkflowTrigger
+
+    queryset = WorkflowTrigger.objects.all()
+
+
+class WorkflowActionViewSet(ModelViewSet):
+    permission_classes = (IsAuthenticated, PaperlessObjectPermissions)
+
+    serializer_class = WorkflowActionSerializer
+    pagination_class = StandardPagination
+
+    model = WorkflowAction
+
+    queryset = WorkflowAction.objects.all().prefetch_related(
+        "assign_tags",
+        "assign_view_users",
+        "assign_view_groups",
+        "assign_change_users",
+        "assign_change_groups",
+        "assign_custom_fields",
+    )
+
+
+class WorkflowViewSet(ModelViewSet):
+    permission_classes = (IsAuthenticated, PaperlessObjectPermissions)
+
+    serializer_class = WorkflowSerializer
+    pagination_class = StandardPagination
+
+    model = Workflow
 
     queryset = (
-        ConsumptionTemplate.objects.prefetch_related(
-            "assign_tags",
-            "assign_view_users",
-            "assign_view_groups",
-            "assign_change_users",
-            "assign_change_groups",
-            "assign_custom_fields",
-        )
-        .all()
+        Workflow.objects.all()
         .order_by("order")
+        .prefetch_related(
+            "triggers",
+            "actions",
+        )
     )
 
 
@@ -1447,6 +1497,11 @@ class CustomFieldViewSet(ModelViewSet):
 
     serializer_class = CustomFieldSerializer
     pagination_class = StandardPagination
+    filter_backends = (
+        DjangoFilterBackend,
+        OrderingFilter,
+    )
+    filterset_class = CustomFieldFilterSet
 
     model = CustomField
 
