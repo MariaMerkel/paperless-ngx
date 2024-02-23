@@ -594,7 +594,7 @@ class TestDocumentSearchApi(DirectoriesMixin, APITestCase):
 
         response = self.client.get("/api/search/autocomplete/?term=created:2023")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, ['created:2023'])
+        self.assertEqual(response.data, ["created:2023"])
 
     @pytest.mark.skip(reason="Not implemented yet")
     def test_search_spelling_correction(self):
