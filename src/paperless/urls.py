@@ -19,10 +19,10 @@ from documents.views import BulkDownloadView
 from documents.views import BulkEditObjectPermissionsView
 from documents.views import BulkEditView
 from documents.views import CorrespondentViewSet
-from documents.views import LegalEntityViewSet
 from documents.views import CustomFieldViewSet
 from documents.views import DocumentTypeViewSet
 from documents.views import IndexView
+from documents.views import LegalEntityViewSet
 from documents.views import LogViewSet
 from documents.views import PostDocumentView
 from documents.views import RemoteVersionView

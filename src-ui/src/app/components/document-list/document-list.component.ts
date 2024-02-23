@@ -288,7 +288,7 @@ export class DocumentListComponent
     this.list.selectNone()
     this.filterEditor.toggleLegalEntity(legalEntityID)
   }
-  
+
   clickStoragePath(storagePathID: number) {
     this.list.selectNone()
     this.filterEditor.toggleStoragePath(storagePathID)

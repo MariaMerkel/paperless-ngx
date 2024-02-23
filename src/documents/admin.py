@@ -7,8 +7,8 @@ from documents.models import CustomField
 from documents.models import CustomFieldInstance
 from documents.models import Document
 from documents.models import DocumentType
-from documents.models import Note
 from documents.models import LegalEntity
+from documents.models import Note
 from documents.models import PaperlessTask
 from documents.models import SavedView
 from documents.models import SavedViewFilterRule
@@ -26,10 +26,12 @@ class CorrespondentAdmin(GuardedModelAdmin):
     list_filter = ("matching_algorithm",)
     list_editable = ("match", "matching_algorithm")
 
+
 class LegalEntityAdmin(GuardedModelAdmin):
     list_display = ("name", "match", "matching_algorithm")
     list_filter = ("matching_algorithm",)
     list_editable = ("match", "matching_algorithm")
+
 
 class TagAdmin(GuardedModelAdmin):
     list_display = ("name", "color", "match", "matching_algorithm")

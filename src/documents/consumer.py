@@ -29,10 +29,10 @@ from documents.matching import document_matches_workflow
 from documents.models import Correspondent
 from documents.models import CustomField
 from documents.models import CustomFieldInstance
-from documents.models import LegalEntity
 from documents.models import Document
 from documents.models import DocumentType
 from documents.models import FileInfo
+from documents.models import LegalEntity
 from documents.models import StoragePath
 from documents.models import Tag
 from documents.models import Workflow
@@ -375,7 +375,9 @@ class Consumer(LoggingMixin):
                     reverse("document-download", kwargs={"pk": document.pk}),
                     reverse("document-thumb", kwargs={"pk": document.pk}),
                     str(document.correspondent),
-                    str(document.legal_entity), # this would break compatibility but this won't be an issue in this case
+                    str(
+                        document.legal_entity,
+                    ),  # this would break compatibility but this won't be an issue in this case
                     str(",".join(document.tags.all().values_list("name", flat=True))),
                 ],
                 env=script_env,

@@ -66,24 +66,23 @@ from documents.data_models import ConsumableDocument
 from documents.data_models import DocumentMetadataOverrides
 from documents.data_models import DocumentSource
 from documents.filters import CorrespondentFilterSet
-from documents.filters import LegalEntityFilterSet
 from documents.filters import CustomFieldFilterSet
 from documents.filters import DocumentFilterSet
 from documents.filters import DocumentTypeFilterSet
+from documents.filters import LegalEntityFilterSet
 from documents.filters import ObjectOwnedOrGrantedPermissionsFilter
 from documents.filters import ShareLinkFilterSet
 from documents.filters import StoragePathFilterSet
 from documents.filters import TagFilterSet
 from documents.matching import match_correspondents
-from documents.matching import match_legal_entities
 from documents.matching import match_document_types
 from documents.matching import match_storage_paths
 from documents.matching import match_tags
 from documents.models import Correspondent
-from documents.models import LegalEntity
 from documents.models import CustomField
 from documents.models import Document
 from documents.models import DocumentType
+from documents.models import LegalEntity
 from documents.models import Note
 from documents.models import PaperlessTask
 from documents.models import SavedView
@@ -105,11 +104,11 @@ from documents.serialisers import BulkDownloadSerializer
 from documents.serialisers import BulkEditObjectPermissionsSerializer
 from documents.serialisers import BulkEditSerializer
 from documents.serialisers import CorrespondentSerializer
-from documents.serialisers import LegalEntitySerializer
 from documents.serialisers import CustomFieldSerializer
 from documents.serialisers import DocumentListSerializer
 from documents.serialisers import DocumentSerializer
 from documents.serialisers import DocumentTypeSerializer
+from documents.serialisers import LegalEntitySerializer
 from documents.serialisers import PostDocumentSerializer
 from documents.serialisers import SavedViewSerializer
 from documents.serialisers import ShareLinkSerializer
@@ -218,6 +217,7 @@ class CorrespondentViewSet(ModelViewSet, PassUserMixin):
         "document_count",
         "last_correspondence",
     )
+
 
 class LegalEntityViewSet(ModelViewSet, PassUserMixin):
     model = LegalEntity

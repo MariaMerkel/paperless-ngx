@@ -29,9 +29,9 @@ from documents.double_sided import CollatePlugin
 from documents.file_handling import create_source_path_directory
 from documents.file_handling import generate_unique_filename
 from documents.models import Correspondent
-from documents.models import LegalEntity
 from documents.models import Document
 from documents.models import DocumentType
+from documents.models import LegalEntity
 from documents.models import StoragePath
 from documents.models import Tag
 from documents.parsers import DocumentParser

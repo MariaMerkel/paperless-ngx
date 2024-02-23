@@ -8,8 +8,8 @@ from documents.data_models import ConsumableDocument
 from documents.data_models import DocumentSource
 from documents.models import Correspondent
 from documents.models import Document
-from documents.models import LegalEntity
 from documents.models import DocumentType
+from documents.models import LegalEntity
 from documents.models import MatchingModel
 from documents.models import StoragePath
 from documents.models import Tag
@@ -57,6 +57,7 @@ def match_correspondents(document: Document, classifier: DocumentClassifier, use
         ),
     )
 
+
 def match_legal_entities(document: Document, classifier: DocumentClassifier, user=None):
     pred_id = classifier.predict_legal_entity(document.content) if classifier else None
 
@@ -75,6 +76,7 @@ def match_legal_entities(document: Document, classifier: DocumentClassifier, use
             legal_entities,
         ),
     )
+
 
 def match_document_types(document: Document, classifier: DocumentClassifier, user=None):
     pred_id = classifier.predict_document_type(document.content) if classifier else None

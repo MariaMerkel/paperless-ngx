@@ -251,8 +251,8 @@ export class DocumentDetailComponent
       .listAll()
       .pipe(first(), takeUntil(this.unsubscribeNotifier))
       .subscribe((result) => (this.documentTypes = result.results))
-    
-      this.legalEntityService
+
+    this.legalEntityService
       .listAll()
       .pipe(first(), takeUntil(this.unsubscribeNotifier))
       .subscribe((result) => (this.legal_entities = result.results))
@@ -582,9 +582,7 @@ export class DocumentDetailComponent
         switchMap((newLegalEntity) => {
           return this.legalEntityService
             .listAll()
-            .pipe(
-              map((legal_entities) => ({ newLegalEntity, legal_entities }))
-            )
+            .pipe(map((legal_entities) => ({ newLegalEntity, legal_entities })))
         })
       )
       .pipe(takeUntil(this.unsubscribeNotifier))

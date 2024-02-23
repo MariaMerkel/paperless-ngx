@@ -978,7 +978,7 @@ export class FilterEditorComponent implements OnInit, OnDestroy {
   toggleCorrespondent(correspondentId: number) {
     this.correspondentSelectionModel.toggle(correspondentId)
   }
-  
+
   toggleLegalEntity(legalEntityId: number) {
     this.legalEntitySelectionModel.toggle(legalEntityId)
   }

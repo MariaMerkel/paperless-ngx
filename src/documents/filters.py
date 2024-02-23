@@ -35,10 +35,12 @@ class CorrespondentFilterSet(FilterSet):
             "name": CHAR_KWARGS,
         }
 
+
 class LegalEntityFilterSet(FilterSet):
     class Meta:
         model = LegalEntity
         fields = {"name": CHAR_KWARGS}
+
 
 class TagFilterSet(FilterSet):
     class Meta:

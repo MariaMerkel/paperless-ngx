@@ -103,10 +103,10 @@ describe('MailRuleEditDialogComponent', () => {
   })
 
   expect(component.showLegalEntityField).toBeFalsy()
-    component.objectForm
-      .get('assign_legal_entity_from')
-      .setValue(MailMetadataLegalEntityOption.FromCustom)
-    expect(component.showLegalEntityField).toBeTruthy()
+  component.objectForm
+    .get('assign_legal_entity_from')
+    .setValue(MailMetadataLegalEntityOption.FromCustom)
+  expect(component.showLegalEntityField).toBeTruthy()
 
   it('should support optional fields', () => {
     expect(component.showCorrespondentField).toBeFalsy()

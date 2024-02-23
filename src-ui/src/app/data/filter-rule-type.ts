@@ -59,7 +59,6 @@ export const FILTER_DUE_DATE_YEAR = 43
 export const FILTER_DUE_DATE_MONTH = 44
 export const FILTER_DUE_DATE_DAY = 45
 
-
 /*
 additions by HBvdG:
 (38, _("legal entity is")),

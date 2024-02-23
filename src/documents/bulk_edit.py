@@ -24,6 +24,7 @@ def set_correspondent(doc_ids, correspondent):
 
     return "OK"
 
+
 def set_legal_entity(doc_ids, legal_entity):
     if legal_entity:
         legal_entity = LegalEntity.objects.get(id=legal_entity)
@@ -35,6 +36,7 @@ def set_legal_entity(doc_ids, legal_entity):
     bulk_update_documents.delay(document_ids=affected_docs)
 
     return "OK"
+
 
 def set_storage_path(doc_ids, storage_path):
     if storage_path:

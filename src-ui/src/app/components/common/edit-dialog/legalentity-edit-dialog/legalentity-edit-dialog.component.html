@@ -5,7 +5,7 @@
       </button>
     </div>
     <div class="modal-body">
-  
+
       <pngx-input-text i18n-title title="Name" formControlName="name" [error]="error?.name"></pngx-input-text>
       <pngx-input-select i18n-title title="Matching algorithm" [items]="getMatchingAlgorithms()" formControlName="matching_algorithm"></pngx-input-select>
       @if (patternRequired) {
@@ -14,15 +14,14 @@
       @if (patternRequired) {
         <pngx-input-check i18n-title title="Case insensitive" formControlName="is_insensitive" novalidate></pngx-input-check>
       }
-  
+
       <div *pngxIfOwner="object">
         <pngx-permissions-form [users]="users" accordion="true" formControlName="permissions_form"></pngx-permissions-form>
       </div>
-  
+
     </div>
     <div class="modal-footer">
       <button type="button" class="btn btn-outline-secondary" (click)="cancel()" i18n [disabled]="networkActive">Cancel</button>
       <button type="submit" class="btn btn-primary" i18n [disabled]="networkActive">Save</button>
     </div>
   </form>
-  

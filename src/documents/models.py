@@ -95,6 +95,7 @@ class Correspondent(MatchingModel):
         verbose_name = _("correspondent")
         verbose_name_plural = _("correspondents")
 
+
 class LegalEntity(MatchingModel):
     class Meta(MatchingModel.Meta):
         verbose_name = _("legal entity")
@@ -218,7 +219,12 @@ class Document(ModelWithOwner):
 
     created = models.DateTimeField(_("created"), default=timezone.now, db_index=True)
 
-    due_date = models.DateTimeField(_("due_date"), default=timezone.now, db_index=False, null=True)
+    due_date = models.DateTimeField(
+        _("due_date"),
+        default=timezone.now,
+        db_index=False,
+        null=True,
+    )
 
     modified = models.DateTimeField(
         _("modified"),
@@ -307,7 +313,7 @@ class Document(ModelWithOwner):
             res += f" (as {self.legal_entity})"
         if self.title:
             res += f" {self.title}"
-        
+
         if self.due_date:
             due_date = datetime.date.isoformat(timezone.localdate(self.due_date))
             res += f" due {self.due_date}"
@@ -385,7 +391,9 @@ class Document(ModelWithOwner):
         return timezone.localdate(self.created)
 
     @property
-    def due_date_date(self): # lovely naming, i know, but that is to prevent this shadowing self.due_date
+    def due_date_date(
+        self,
+    ):  # lovely naming, i know, but that is to prevent this shadowing self.due_date
         if not self.due_date:
             return None
         return timezone.localdate(self.due_date)
@@ -412,7 +420,12 @@ class Log(models.Model):
 
     created = models.DateTimeField(_("created"), auto_now_add=True)
 
-    due_date = models.DateTimeField(_("due_date"), default=timezone.now, db_index=False, null=True)
+    due_date = models.DateTimeField(
+        _("due_date"),
+        default=timezone.now,
+        db_index=False,
+        null=True,
+    )
 
     class Meta:
         ordering = ("-created",)
@@ -497,7 +510,7 @@ class SavedViewFilterRule(models.Model):
         (42, _("due date after")),
         (43, _("due date year is")),
         (44, _("due date month is")),
-        (45, _("due date day is"))
+        (45, _("due date day is")),
     ]
 
     saved_view = models.ForeignKey(

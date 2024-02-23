@@ -116,6 +116,7 @@ def set_correspondent(
             document.correspondent = selected
             document.save(update_fields=("correspondent",))
 
+
 def set_legal_entity(
     sender,
     document: Document,
@@ -177,6 +178,7 @@ def set_legal_entity(
 
             document.legal_entity = selected
             document.save(update_fields=("legal_entity",))
+
 
 def set_document_type(
     sender,

@@ -306,8 +306,7 @@ class DocumentClassifier:
         else:
             self.legal_entity_classifier = None
             logger.debug(
-                "There are no legal entities. Not training legal entity "
-                "classifier.",
+                "There are no legal entities. Not training legal entity classifier.",
             )
 
         if num_document_types > 0:

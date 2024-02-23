@@ -295,6 +295,7 @@ class CorrespondentSerializer(MatchingModelSerializer, OwnedObjectSerializer):
             "set_permissions",
         )
 
+
 class LegalEntitySerializer(MatchingModelSerializer, OwnedObjectSerializer):
     last_correspondence = serializers.DateTimeField(read_only=True)
 
@@ -314,6 +315,7 @@ class LegalEntitySerializer(MatchingModelSerializer, OwnedObjectSerializer):
             "user_can_change",
             "set_permissions",
         )
+
 
 class DocumentTypeSerializer(MatchingModelSerializer, OwnedObjectSerializer):
     class Meta:
@@ -431,9 +433,11 @@ class CorrespondentField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self):
         return Correspondent.objects.all()
 
+
 class LegalEntityField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self):
         return LegalEntity.objects.all()
+
 
 class TagsField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self):
@@ -904,7 +908,7 @@ class BulkEditSerializer(DocumentListSerializer, SetPermissionsMixin):
                 raise serializers.ValidationError("Correspondent does not exist")
         else:
             raise serializers.ValidationError("correspondent not specified")
-    
+
     def _validate_parameters_legal_entity(self, parameters):
         if "legal_entity" in parameters:
             legal_entity_id = parameters["legal_entity"]
@@ -1067,7 +1071,7 @@ class PostDocumentSerializer(serializers.Serializer):
             return correspondent.id
         else:
             return None
-    
+
     def validate_legal_entity(self, legal_entity):
         if legal_entity:
             return legal_entity.id

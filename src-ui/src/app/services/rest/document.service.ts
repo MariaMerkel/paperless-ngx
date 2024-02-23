@@ -74,9 +74,7 @@ export class DocumentService extends AbstractPaperlessService<Document> {
       )
     }
     if (doc.legal_entity$) {
-      doc.legal_entity$ = this.legalEntityService.getCached(
-        doc.legal_entity
-      )
+      doc.legal_entity$ = this.legalEntityService.getCached(doc.legal_entity)
     }
     if (doc.document_type) {
       doc.document_type$ = this.documentTypeService.getCached(doc.document_type)
