@@ -541,7 +541,6 @@ class DocumentViewSet(
                 "id": c.id,
                 "note": c.note,
                 "created": c.created,
-                "due_date": c.due_date,
                 "user": {
                     "id": c.user.id,
                     "username": c.user.username,
