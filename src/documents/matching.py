@@ -64,10 +64,7 @@ def match_legal_entities(document: Document, classifier: DocumentClassifier, use
     if user is None and document.owner is not None:
         user = document.owner
 
-    if user is not None:
-        legal_entities = None
-    else:
-        legal_entities = LegalEntity.objects.all()
+    legal_entities = None if user is not None else LegalEntity.objects.all()
 
     return list(
         filter(

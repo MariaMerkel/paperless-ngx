@@ -316,7 +316,7 @@ class Document(ModelWithOwner):
 
         if self.due_date:
             due_date = datetime.date.isoformat(timezone.localdate(self.due_date))
-            res += f" due {self.due_date}"
+            res += f" due {due_date}"
         return res
 
     @property

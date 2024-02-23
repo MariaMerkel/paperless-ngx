@@ -221,6 +221,7 @@ class DocumentClassifier:
         # correspondents and types assigned, so -1 isn't part of labels_x, which
         # it usually is.
         num_correspondents = len(set(labels_correspondent) | {-1}) - 1
+        num_correspondents = len(set(labels_legal_entity) | {-1}) - 1
         num_document_types = len(set(labels_document_type) | {-1}) - 1
         num_storage_paths = len(set(labels_storage_path) | {-1}) - 1
 

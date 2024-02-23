@@ -483,7 +483,7 @@ def autocomplete(
                 for _, term in hit.matched_terms():
                     termCounts[term] += 1
             terms = [t for t, _ in termCounts.most_common(limit)]
-    terms = [term_queried] + terms
+    terms = [term_queried, *terms]
     # prepend the queried term
     return terms
 
