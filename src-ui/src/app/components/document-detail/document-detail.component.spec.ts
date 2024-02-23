@@ -79,7 +79,7 @@ const doc: Document = {
   id: 3,
   title: 'Doc 3',
   correspondent: 11,
-  legalentity: 11,
+  legal_entity: 11,
   document_type: 21,
   storage_path: 31,
   tags: [41, 42, 43],

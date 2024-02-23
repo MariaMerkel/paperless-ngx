@@ -36,9 +36,9 @@ import {
   FILTER_CORRESPONDENT,
   FILTER_HAS_CORRESPONDENT_ANY,
   FILTER_DOES_NOT_HAVE_CORRESPONDENT,
-  FILTER_LEGALENTITY,
-  FILTER_HAS_LEGALENTITY_ANY,
-  FILTER_DOES_NOT_HAVE_LEGALENTITY,
+  FILTER_LEGAL_ENTITY,
+  FILTER_HAS_LEGAL_ENTITY_ANY,
+  FILTER_DOES_NOT_HAVE_LEGAL_ENTITY,
   FILTER_DOCUMENT_TYPE,
   FILTER_HAS_DOCUMENT_TYPE_ANY,
   FILTER_DOES_NOT_HAVE_DOCUMENT_TYPE,
@@ -102,6 +102,17 @@ const correspondents: Correspondent[] = [
   {
     id: 13,
     name: 'Corresp13',
+  },
+]
+
+const legal_entities: LegalEntity[] = [
+  {
+    id: 42,
+    name: 'LegalEntity42',
+  },
+  {
+    id: 43,
+    name: 'LegalEntity43',
   },
 ]
 
@@ -1552,6 +1563,10 @@ describe('FilterEditorComponent', () => {
       selected_correspondents: [
         { id: 12, document_count: 1 },
         { id: 13, document_count: 0 },
+      ],
+      selected_legal_entities: [
+        { id: 42, document_count: 1 },
+        { id: 43, document_count: 0 },
       ],
       selected_tags: [
         { id: 22, document_count: 1 },

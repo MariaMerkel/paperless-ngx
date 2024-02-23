@@ -561,7 +561,7 @@ describe('DocumentListComponent', () => {
 
     expect(
       fixture.debugElement.queryAll(By.directive(SortableDirective))
-    ).toHaveLength(9)
+    ).toHaveLength(11)
 
     expect(component.notesEnabled).toBeTruthy()
     settingsService.set(SETTINGS_KEYS.NOTES_ENABLED, false)
