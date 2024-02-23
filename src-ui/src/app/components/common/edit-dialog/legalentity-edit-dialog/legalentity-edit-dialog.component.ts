@@ -9,7 +9,7 @@ import { UserService } from 'src/app/services/rest/user.service'
 import { SettingsService } from 'src/app/services/settings.service'
 
 @Component({
-  selector: 'app-legalentity-edit-dialog',
+  selector: 'pngx-legalentity-edit-dialog',
   templateUrl: './legalentity-edit-dialog.component.html',
   styleUrls: ['./legalentity-edit-dialog.component.scss'],
 })

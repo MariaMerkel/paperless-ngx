@@ -110,6 +110,8 @@
               <pngx-input-number i18n-title title="Archive serial number" [error]="error?.archive_serial_number" [horizontal]="true" formControlName='archive_serial_number'></pngx-input-number>
               <pngx-input-date i18n-title title="Date created" formControlName="created_date" [suggestions]="suggestions?.dates" [showFilter]="true" [horizontal]="true" (filterDocuments)="filterDocuments($event)"
               [error]="error?.created_date"></pngx-input-date>
+              <pngx-input-date i18n-title title="Due date" formControlName="due_date" [suggestions]="suggestions?.dates" [showFilter]="true" [horizontal]="true" (filterDocuments)="filterDocuments($event)"
+              [error]="error?.due_date"></pngx-input-date>
               <pngx-input-select [items]="correspondents" i18n-title title="Correspondent" formControlName="correspondent" [allowNull]="true" [showFilter]="true" [horizontal]="true" (filterDocuments)="filterDocuments($event)"
               (createNew)="createCorrespondent($event)" [suggestions]="suggestions?.correspondents" *pngxIfPermissions="{ action: PermissionAction.View, type: PermissionType.Correspondent }"></pngx-input-select>
               <pngx-input-select [items]="legal_entities" i18n-title title="Legal entity" formControlName="legal_entity" [allowNull]="true" [showFilter]="true" [horizontal]="true" (filterDocuments)="filterDocuments($event)"
