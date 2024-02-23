@@ -25,14 +25,14 @@ class TestAutoComplete(DirectoriesMixin, TestCase):
 
         self.assertListEqual(
             index.autocomplete(ix, "tes"),
-            [b"test2", b"test", b"test3"],
+            ["tes", b"test2", b"test", b"test3"],
         )
         self.assertListEqual(
             index.autocomplete(ix, "tes", limit=3),
-            [b"test2", b"test", b"test3"],
+            ["tes", b"test2", b"test", b"test3"],
         )
-        self.assertListEqual(index.autocomplete(ix, "tes", limit=1), [b"test2"])
-        self.assertListEqual(index.autocomplete(ix, "tes", limit=0), [])
+        self.assertListEqual(index.autocomplete(ix, "tes", limit=1), ["tes", b"test2"])
+        self.assertListEqual(index.autocomplete(ix, "tes", limit=0), ["tes"])
 
     def test_archive_serial_number_ranging(self):
         """

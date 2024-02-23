@@ -519,7 +519,8 @@ class TestDocumentSearchApi(DirectoriesMixin, APITestCase):
         WHEN:
             - API request for autocomplete is made by user with or without permissions
         THEN:
-            - Terms only within docs user has access to are returned
+            - Search query is returned as first result, and
+            - terms only within docs user has access to are returned
         """
         u1 = User.objects.create_user("user1")
         u2 = User.objects.create_user("user2")
@@ -552,7 +553,7 @@ class TestDocumentSearchApi(DirectoriesMixin, APITestCase):
 
         response = self.client.get("/api/search/autocomplete/?term=app")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, [b"apples", b"applebaum", b"appletini"])
+        self.assertEqual(response.data, ["app", b"apples", b"applebaum", b"appletini"])
 
         d3.owner = u2
 
@@ -579,7 +580,7 @@ class TestDocumentSearchApi(DirectoriesMixin, APITestCase):
         WHEN:
             - API request for autocomplete is made with a query which looks like a schema field
         THEN:
-            - No autocomplete terms returns
+            - The only autocomplete term returned is 'created:2023'
             - No UnicodeDecodeError due to weird binary data returned from index
         """
         d1 = Document.objects.create(
@@ -593,7 +594,7 @@ class TestDocumentSearchApi(DirectoriesMixin, APITestCase):
 
         response = self.client.get("/api/search/autocomplete/?term=created:2023")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, [])
+        self.assertEqual(response.data, ['created:2023'])
 
     @pytest.mark.skip(reason="Not implemented yet")
     def test_search_spelling_correction(self):
