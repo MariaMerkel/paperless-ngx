@@ -562,7 +562,7 @@ class TestDocumentSearchApi(DirectoriesMixin, APITestCase):
 
         response = self.client.get("/api/search/autocomplete/?term=app")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, [b"apples", b"applebaum"])
+        self.assertEqual(response.data, ["app", b"apples", b"applebaum"])
 
         assign_perm("view_document", u1, d3)
 

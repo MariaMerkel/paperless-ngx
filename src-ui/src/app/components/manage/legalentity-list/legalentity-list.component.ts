@@ -14,7 +14,7 @@ import { LegalEntityEditDialogComponent } from '../../common/edit-dialog/legalen
 import { ManagementListComponent } from '../management-list/management-list.component'
 
 @Component({
-  selector: 'app-legal_entity-list',
+  selector: 'pngx-legal_entity-list',
   templateUrl: './../management-list/management-list.component.html',
   styleUrls: ['./../management-list/management-list.component.scss'],
   providers: [{ provide: CustomDatePipe }],

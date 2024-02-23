@@ -1220,6 +1220,7 @@ class TestDocumentApi(DirectoriesMixin, DocumentConsumeDelayMixin, APITestCase):
             response.data,
             {
                 "correspondents": [],
+                "legal_entities": [],
                 "tags": [],
                 "document_types": [],
                 "storage_paths": [],
