@@ -769,7 +769,7 @@ class TestExportImport(DirectoriesMixin, FileSystemAssertsMixin, TestCase):
                 codename="test_perm",
                 content_type_id=1,
             )
-            self.assertEqual(Permission.objects.count(), 137)
+            self.assertEqual(Permission.objects.count(), 141)
 
             # will cause an import error
             self.user.delete()
@@ -779,4 +779,4 @@ class TestExportImport(DirectoriesMixin, FileSystemAssertsMixin, TestCase):
                 call_command("document_importer", "--no-progress-bar", self.target)
 
             self.assertEqual(ContentType.objects.count(), 35)
-            self.assertEqual(Permission.objects.count(), 137)
+            self.assertEqual(Permission.objects.count(), 141)
