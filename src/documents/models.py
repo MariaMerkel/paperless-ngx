@@ -221,7 +221,7 @@ class Document(ModelWithOwner):
 
     due_date = models.DateTimeField(
         _("due_date"),
-        default=timezone.now,
+        default=None,
         db_index=False,
         null=True,
     )
