@@ -17,6 +17,7 @@
           <th scope="col" i18n>Title</th>
           <th scope="col" class="d-none d-md-table-cell" i18n>Tags</th>
           <th scope="col" class="d-none d-md-table-cell" i18n>Correspondent</th>
+          <th scope="col" class="d-none d-md-table-cell" i18n>Due date</th>
         </tr>
       </thead>
       <tbody>
@@ -52,6 +53,11 @@
                   </svg>
                 </a>
               </div>
+            </td>
+            <td class="position-relative py-2 py-md-3 d-none d-md-table-cell">
+              @if (doc.due_date !== null) {
+                <p class="mb-0 fst-italic">{{doc.due_date | customDate:'mediumDate'}}</p>
+              }
             </td>
           </tr>
         }
