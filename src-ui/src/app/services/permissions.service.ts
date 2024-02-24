@@ -13,7 +13,7 @@ export enum PermissionType {
   Document = '%s_document',
   Tag = '%s_tag',
   Correspondent = '%s_correspondent',
-  LegalEntity = '%s_legal_entity',
+  LegalEntity = '%s_legalentity',
   DocumentType = '%s_documenttype',
   StoragePath = '%s_storagepath',
   SavedView = '%s_savedview',
