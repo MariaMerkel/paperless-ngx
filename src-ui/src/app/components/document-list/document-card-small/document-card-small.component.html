@@ -99,7 +99,7 @@
         @if (displayFields.includes(DisplayField.LEGAL_ENTITY) && document.legal_entity) {
           <div class="ps-0 p-1">
             <i-bs width="1em" height="1em" class="me-2 text-muted" name="buildings"></i-bs>
-            <small>{{document.legal_entity.name}}</small>
+            <small><a title="Toggle legal entity filter" i18n-title (click)="clickLegalEntity.emit(document.legal_entity);$event.stopPropagation()" class="btn-link">{{(document.legal_entity$ | async)?.name ?? privateName}}</a></small>
           </div>
         }
         @if (displayFields.includes(DisplayField.ASN) && document.archive_serial_number | isNumber) {

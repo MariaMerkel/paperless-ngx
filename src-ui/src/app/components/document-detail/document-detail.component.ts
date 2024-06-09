@@ -283,7 +283,7 @@ export class DocumentDetailComponent
       this.legalEntityService
         .listAll()
         .pipe(first(), takeUntil(this.unsubscribeNotifier))
-        .subscribe((result) => (this.correspondents = result.results))
+        .subscribe((result) => (this.legal_entities = result.results))
     }
     if (
       this.permissionsService.currentUserCan(
