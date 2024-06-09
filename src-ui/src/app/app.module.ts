@@ -128,6 +128,7 @@ import { GlobalSearchComponent } from './components/app-frame/global-search/glob
 import { HotkeyDialogComponent } from './components/common/hotkey-dialog/hotkey-dialog.component'
 import {
   airplane,
+  alarm,
   archive,
   arrowClockwise,
   arrowCounterclockwise,
@@ -142,6 +143,7 @@ import {
   boxArrowUp,
   boxArrowUpRight,
   boxes,
+  buildings,
   calendar,
   calendarEvent,
   calendarEventFill,
@@ -227,6 +229,7 @@ import {
 
 const icons = {
   airplane,
+  alarm,
   archive,
   arrowClockwise,
   arrowCounterclockwise,
@@ -241,6 +244,7 @@ const icons = {
   boxArrowUp,
   boxArrowUpRight,
   boxes,
+  buildings,
   calendar,
   calendarEvent,
   calendarEventFill,

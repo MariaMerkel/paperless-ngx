@@ -72,10 +72,6 @@
               <i-bs width="1em" height="1em" class="me-2 text-muted" name="calendar-event"></i-bs>
               <small>{{document.created | customDate:'mediumDate'}}</small>
             </div>
-            <div class="ps-0 p-1" placement="top" [ngbTooltip]="dateTooltip">
-              <i-bs width="1em" height="1em" class="me-2 text-muted" name="clock"></i-bs>
-              <small>Due {{document.due_date | customDate:'mediumDate'}}</small>
-            </div>
           </div>
         }
         @if (displayFields.includes(DisplayField.ADDED)) {
@@ -92,6 +88,18 @@
               <i-bs width="1em" height="1em" class="me-2 text-muted" name="calendar-event"></i-bs>
               <small>{{document.added | customDate:'mediumDate'}}</small>
             </div>
+          </div>
+        }
+        @if (displayFields.includes(DisplayField.DUE_DATE) && document.due_date) {
+          <div class="ps-0 p-1">
+            <i-bs width="1em" height="1em" class="me-2 text-muted" name="alarm"></i-bs>
+            <small>Due {{document.due_date | customDate:'mediumDate'}}</small>
+          </div>
+        }
+        @if (displayFields.includes(DisplayField.LEGAL_ENTITY) && document.legal_entity) {
+          <div class="ps-0 p-1">
+            <i-bs width="1em" height="1em" class="me-2 text-muted" name="buildings"></i-bs>
+            <small>{{document.legal_entity.name}}</small>
           </div>
         }
         @if (displayFields.includes(DisplayField.ASN) && document.archive_serial_number | isNumber) {
