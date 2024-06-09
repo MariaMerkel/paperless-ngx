@@ -26,6 +26,7 @@ import { UploadDocumentsService } from 'src/app/services/upload-documents.servic
 import { WidgetFrameComponent } from '../widget-frame/widget-frame.component'
 import { UploadFileWidgetComponent } from './upload-file-widget.component'
 import { DragDropModule } from '@angular/cdk/drag-drop'
+import { NgxBootstrapIconsModule, allIcons } from 'ngx-bootstrap-icons'
 
 const FAILED_STATUSES = [new FileStatus()]
 const WORKING_STATUSES = [new FileStatus(), new FileStatus()]
@@ -73,6 +74,7 @@ describe('UploadFileWidgetComponent', () => {
         RouterTestingModule.withRoutes(routes),
         NgbAlertModule,
         DragDropModule,
+        NgxBootstrapIconsModule.pick(allIcons),
       ],
     }).compileComponents()
 
@@ -117,6 +119,8 @@ describe('UploadFileWidgetComponent', () => {
     const processingStatus = new FileStatus()
     processingStatus.phase = FileStatusPhase.WORKING
     expect(component.getStatusColor(processingStatus)).toEqual('primary')
+    processingStatus.phase = FileStatusPhase.UPLOADING
+    expect(component.getStatusColor(processingStatus)).toEqual('primary')
     const failedStatus = new FileStatus()
     failedStatus.phase = FileStatusPhase.FAILED
     expect(component.getStatusColor(failedStatus)).toEqual('danger')
@@ -145,14 +149,18 @@ describe('UploadFileWidgetComponent', () => {
     expect(dismissSpy).toHaveBeenCalled()
   })
 
-  it('should allow dismissing all alerts', fakeAsync(() => {
+  it('should allow dismissing completed alerts', fakeAsync(() => {
     mockConsumerStatuses(consumerStatusService)
+    component.alertsExpanded = true
     fixture.detectChanges()
+    jest
+      .spyOn(component, 'getStatusCompleted')
+      .mockImplementation(() => SUCCESS_STATUSES)
     const dismissSpy = jest.spyOn(consumerStatusService, 'dismiss')
     component.dismissCompleted()
     tick(1000)
     fixture.detectChanges()
-    expect(dismissSpy).toHaveBeenCalledTimes(6)
+    expect(dismissSpy).toHaveBeenCalledTimes(4)
   }))
 })
 

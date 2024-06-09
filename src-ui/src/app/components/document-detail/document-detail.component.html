@@ -1,11 +1,13 @@
 <pngx-page-header [(title)]="title">
-  @if (getContentType() === 'application/pdf' && !useNativePdfViewer) {
-    <div class="input-group input-group-sm me-2 d-none d-md-flex">
-      <div class="input-group-text" i18n>Page</div>
-      <input class="form-control flex-grow-0 w-auto" type="number" min="1" [max]="previewNumPages" [(ngModel)]="previewCurrentPage" />
-      <div class="input-group-text" i18n>of {{previewNumPages}}</div>
-    </div>
-    <div class="input-group input-group-sm me-5 d-none d-md-flex">
+  @if (contentRenderType === ContentRenderType.PDF && !useNativePdfViewer) {
+    @if (previewNumPages) {
+      <div class="input-group input-group-sm d-none d-md-flex">
+        <div class="input-group-text" i18n>Page</div>
+          <input class="form-control flex-grow-0 w-auto" type="number" min="1" [max]="previewNumPages" [(ngModel)]="previewCurrentPage" />
+        <div class="input-group-text" i18n>of {{previewNumPages}}</div>
+      </div>
+    }
+    <div class="input-group input-group-sm me-md-5 d-none d-md-flex">
       <button class="btn btn-outline-secondary" (click)="decreaseZoom()" i18n>-</button>
       <select class="form-select" (change)="onZoomSelect($event)">
         @for (setting of zoomSettings; track setting) {
@@ -18,17 +20,13 @@
     </div>
   }
 
-  <button type="button" class="btn btn-sm btn-outline-danger me-4" (click)="delete()" [disabled]="!userIsOwner" *pngxIfPermissions="{ action: PermissionAction.Delete, type: PermissionType.Document }">
-    <svg class="buttonicon" fill="currentColor">
-      <use xlink:href="assets/bootstrap-icons.svg#trash" />
-    </svg><span class="d-none d-lg-inline ps-1" i18n>Delete</span>
+  <button type="button" class="btn btn-sm btn-outline-danger me-md-4" (click)="delete()" [disabled]="!userIsOwner" *pngxIfPermissions="{ action: PermissionAction.Delete, type: PermissionType.Document }">
+    <i-bs width="1.2em" height="1.2em" name="trash"></i-bs><span class="d-none d-lg-inline ps-1" i18n>Delete</span>
   </button>
 
-  <div class="btn-group me-2">
+  <div class="btn-group">
     <a [href]="downloadUrl" class="btn btn-sm btn-outline-primary">
-      <svg class="buttonicon me-md-1" fill="currentColor">
-          <use xlink:href="assets/bootstrap-icons.svg#download" />
-      </svg><span class="d-none d-lg-inline ps-1" i18n>Download</span>
+      <i-bs width="1.2em" height="1.2em" name="download"></i-bs><span class="d-none d-lg-inline ps-1" i18n>Download</span>
     </a>
 
     @if (metadata?.has_archive_version) {
@@ -42,30 +40,31 @@
   </div>
 
   <div class="ms-auto" ngbDropdown>
-    <button class="btn btn-sm btn-outline-primary me-2" id="actionsDropdown" ngbDropdownToggle>
-      <svg class="toolbaricon" fill="currentColor">
-        <use xlink:href="assets/bootstrap-icons.svg#three-dots" />
-      </svg>
+    <button class="btn btn-sm btn-outline-primary" id="actionsDropdown" ngbDropdownToggle>
+      <i-bs name="three-dots"></i-bs>
       <div class="d-none d-sm-inline">&nbsp;<ng-container i18n>Actions</ng-container></div>
     </button>
     <div ngbDropdownMenu aria-labelledby="actionsDropdown" class="shadow">
       <button ngbDropdownItem (click)="redoOcr()" [disabled]="!userCanEdit">
-        <svg class="buttonicon-sm" fill="currentColor">
-          <use xlink:href="assets/bootstrap-icons.svg#arrow-counterclockwise" />
-        </svg><span class="ps-1" i18n>Redo OCR</span>
+        <i-bs width="1em" height="1em" name="arrow-counterclockwise"></i-bs>&nbsp;<span i18n>Redo OCR</span>
       </button>
 
       <button ngbDropdownItem (click)="moreLike()">
-        <svg class="buttonicon-sm" fill="currentColor">
-            <use xlink:href="assets/bootstrap-icons.svg#diagram-3" />
-        </svg><span class="ps-1" i18n>More like this</span>
+        <i-bs width="1em" height="1em" name="diagram-3"></i-bs>&nbsp;<span i18n>More like this</span>
+      </button>
+
+      <button ngbDropdownItem (click)="splitDocument()" [disabled]="contentRenderType !== ContentRenderType.PDF || previewNumPages === 1">
+        <i-bs width="1em" height="1em" name="scissors"></i-bs>&nbsp;<span i18n>Split</span>
+      </button>
+
+      <button ngbDropdownItem (click)="rotateDocument()" [disabled]="!userIsOwner || metadata?.original_mime_type !== 'application/pdf'">
+        <i-bs name="arrow-clockwise"></i-bs>&nbsp;<ng-container i18n>Rotate</ng-container>
       </button>
     </div>
   </div>
 
   <pngx-custom-fields-dropdown
     *pngxIfPermissions="{ action: PermissionAction.View, type: PermissionType.CustomField }"
-    class="me-2"
     [documentId]="documentId"
     [disabled]="!userIsOwner"
     [existingFields]="document?.custom_fields"
@@ -79,22 +78,17 @@
 <div class="row">
   <div class="col-md-6 col-xl-4 mb-4">
     <form [formGroup]='documentForm' (ngSubmit)="save()">
-      <div class="btn-toolbar mb-1 pb-3 border-bottom">
-        <div class="btn-group">
+
+      <div class="btn-toolbar mb-1 border-bottom">
+        <div class="btn-group pb-3">
           <button type="button" class="btn btn-sm btn-outline-secondary" i18n-title title="Close" (click)="close()">
-            <svg class="buttonicon" fill="currentColor">
-              <use xlink:href="assets/bootstrap-icons.svg#x" />
-            </svg>
+            <i-bs width="1.2em" height="1.2em" name="x"></i-bs>
           </button>
           <button type="button" class="btn btn-sm btn-outline-secondary" i18n-title title="Previous" (click)="previousDoc()" [disabled]="!hasPrevious()">
-            <svg class="buttonicon" fill="currentColor">
-              <use xlink:href="assets/bootstrap-icons.svg#arrow-left" />
-            </svg>
+            <i-bs width="1.2em" height="1.2em" name="arrow-left"></i-bs>
           </button>
           <button type="button" class="btn btn-sm btn-outline-secondary"  i18n-title title="Next" (click)="nextDoc()" [disabled]="!hasNext()">
-            <svg class="buttonicon" fill="currentColor">
-              <use xlink:href="assets/bootstrap-icons.svg#arrow-right" />
-            </svg>
+            <i-bs width="1.2em" height="1.2em" name="arrow-right"></i-bs>
           </button>
         </div>
 
@@ -121,10 +115,10 @@
               <pngx-input-select [items]="storagePaths" i18n-title title="Storage path" formControlName="storage_path" [allowNull]="true" [showFilter]="true" [horizontal]="true" (filterDocuments)="filterDocuments($event)"
               (createNew)="createStoragePath($event)" [suggestions]="suggestions?.storage_paths" i18n-placeholder placeholder="Default" *pngxIfPermissions="{ action: PermissionAction.View, type: PermissionType.StoragePath }"></pngx-input-select>
               <pngx-input-tags formControlName="tags" [suggestions]="suggestions?.tags" [showFilter]="true" [horizontal]="true" (filterDocuments)="filterDocuments($event)" *pngxIfPermissions="{ action: PermissionAction.View, type: PermissionType.Tag }"></pngx-input-tags>
-              @for (fieldInstance of document?.custom_fields; track fieldInstance; let i = $index) {
+              @for (fieldInstance of document?.custom_fields; track fieldInstance.field; let i = $index) {
                 <div [formGroup]="customFieldFormFields.controls[i]">
                   @switch (getCustomFieldFromInstance(fieldInstance)?.data_type) {
-                    @case (PaperlessCustomFieldDataType.String) {
+                    @case (CustomFieldDataType.String) {
                       <pngx-input-text formControlName="value"
                       [title]="getCustomFieldFromInstance(fieldInstance)?.name"
                       [removable]="userIsOwner"
@@ -132,7 +126,7 @@
                       [horizontal]="true"
                       [error]="getCustomFieldError(i)"></pngx-input-text>
                     }
-                    @case (PaperlessCustomFieldDataType.Date) {
+                    @case (CustomFieldDataType.Date) {
                       <pngx-input-date formControlName="value"
                       [title]="getCustomFieldFromInstance(fieldInstance)?.name"
                       [removable]="userIsOwner"
@@ -140,7 +134,7 @@
                       [horizontal]="true"
                       [error]="getCustomFieldError(i)"></pngx-input-date>
                     }
-                    @case (PaperlessCustomFieldDataType.Integer) {
+                    @case (CustomFieldDataType.Integer) {
                       <pngx-input-number formControlName="value"
                       [title]="getCustomFieldFromInstance(fieldInstance)?.name"
                       [removable]="userIsOwner"
@@ -149,7 +143,7 @@
                       [showAdd]="false"
                       [error]="getCustomFieldError(i)"></pngx-input-number>
                     }
-                    @case (PaperlessCustomFieldDataType.Float) {
+                    @case (CustomFieldDataType.Float) {
                       <pngx-input-number formControlName="value"
                       [title]="getCustomFieldFromInstance(fieldInstance)?.name"
                       [removable]="userIsOwner"
@@ -159,24 +153,22 @@
                       [step]=".1"
                       [error]="getCustomFieldError(i)"></pngx-input-number>
                     }
-                    @case (PaperlessCustomFieldDataType.Monetary) {
-                      <pngx-input-number formControlName="value"
+                    @case (CustomFieldDataType.Monetary) {
+                      <pngx-input-monetary formControlName="value"
                       [title]="getCustomFieldFromInstance(fieldInstance)?.name"
                       [removable]="userIsOwner"
                       (removed)="removeField(fieldInstance)"
                       [horizontal]="true"
-                      [showAdd]="false"
-                      [step]=".01"
-                      [error]="getCustomFieldError(i)"></pngx-input-number>
+                      [error]="getCustomFieldError(i)"></pngx-input-monetary>
                     }
-                    @case (PaperlessCustomFieldDataType.Boolean) {
+                    @case (CustomFieldDataType.Boolean) {
                       <pngx-input-check formControlName="value"
                       [title]="getCustomFieldFromInstance(fieldInstance)?.name"
                       [removable]="userIsOwner"
                       (removed)="removeField(fieldInstance)"
                       [horizontal]="true"></pngx-input-check>
                     }
-                    @case (PaperlessCustomFieldDataType.Url) {
+                    @case (CustomFieldDataType.Url) {
                       <pngx-input-url formControlName="value"
                       [title]="getCustomFieldFromInstance(fieldInstance)?.name"
                       [removable]="userIsOwner"
@@ -184,7 +176,7 @@
                       [horizontal]="true"
                       [error]="getCustomFieldError(i)"></pngx-input-url>
                     }
-                    @case (PaperlessCustomFieldDataType.DocumentLink) {
+                    @case (CustomFieldDataType.DocumentLink) {
                       <pngx-input-document-link formControlName="value"
                       [title]="getCustomFieldFromInstance(fieldInstance)?.name"
                       [parentDocumentID]="documentId"
@@ -278,7 +270,9 @@
           <a ngbNavLink i18n>Preview</a>
           @if (!pdfPreview.offsetParent) {
             <ng-template ngbNavContent>
-              <ng-container *ngTemplateOutlet="previewContent"></ng-container>
+              <div class="position-relative">
+                <ng-container *ngTemplateOutlet="previewContent"></ng-container>
+              </div>
             </ng-template>
           }
         </li>
@@ -290,6 +284,17 @@
             }</a>
             <ng-template ngbNavContent>
               <pngx-document-notes [documentId]="documentId" [notes]="document?.notes" [addDisabled]="!userCanEdit" (updated)="notesUpdated($event)"></pngx-document-notes>
+            </ng-template>
+          </li>
+        }
+
+        @if (historyEnabled) {
+          <li [ngbNavItem]="DocumentDetailNavIDs.History">
+            <a ngbNavLink i18n>History</a>
+            <ng-template ngbNavContent>
+              <div class="mb-3">
+                <pngx-document-history [documentId]="documentId"></pngx-document-history>
+              </div>
             </ng-template>
           </li>
         }
@@ -313,22 +318,12 @@
 
   <div class="col-md-6 col-xl-8 mb-3 d-none d-md-block position-relative" #pdfPreview>
     <ng-container *ngTemplateOutlet="previewContent"></ng-container>
-    @if (renderAsPlainText) {
-      <div [innerText]="previewText" class="preview-sticky bg-light p-3 overflow-auto" width="100%"></div>
-    }
-    @if (requiresPassword) {
-      <div class="password-prompt">
-        <form>
-          <input autocomplete="" class="form-control" i18n-placeholder placeholder="Enter Password" type="password" (keyup)="onPasswordKeyUp($event)" />
-        </form>
-      </div>
-    }
   </div>
 
 </div>
 
 <ng-template #saveButtons>
-  <div class="btn-group ms-auto">
+  <div class="btn-group pb-3 ms-auto">
     <ng-container *pngxIfPermissions="{ action: PermissionAction.Change, type: PermissionType.Document }">
       <button type="submit" class="order-3 btn btn-sm btn-primary" i18n [disabled]="!userCanEdit || networkActive || (isDirty$ | async) !== true">Save</button>
       @if (hasNext()) {
@@ -350,34 +345,45 @@
         <ng-container i18n>Loading...</ng-container>
       </div>
     </div>
-  }
-  @if (getContentType() === 'application/pdf') {
-    @if (!useNativePdfViewer ) {
-      <div class="preview-sticky pdf-viewer-container">
-        <pngx-pdf-viewer
-          [src]="{ url: previewUrl, password: password }"
-          [original-size]="false"
-          [show-borders]="true"
-          [show-all]="true"
-          [(page)]="previewCurrentPage"
-          [zoom-scale]="previewZoomScale"
-          [zoom]="previewZoomSetting"
-          (error)="onError($event)"
-          (after-load-complete)="pdfPreviewLoaded($event)">
-        </pngx-pdf-viewer>
-      </div>
-    } @else {
-      <object [data]="previewUrl | safeUrl" class="preview-sticky" width="100%"></object>
+  } @else {
+    @switch (contentRenderType) {
+      @case (ContentRenderType.PDF) {
+        @if (!useNativePdfViewer) {
+          <div class="preview-sticky pdf-viewer-container">
+            <pngx-pdf-viewer
+              [src]="{ url: previewUrl, password: password }"
+              [original-size]="false"
+              [show-borders]="true"
+              [show-all]="true"
+              [(page)]="previewCurrentPage"
+              [zoom-scale]="previewZoomScale"
+              [zoom]="previewZoomSetting"
+              (error)="onError($event)"
+              (after-load-complete)="pdfPreviewLoaded($event)">
+            </pngx-pdf-viewer>
+          </div>
+        } @else {
+          <object [data]="previewUrl | safeUrl" class="preview-sticky" width="100%"></object>
+        }
+      }
+      @case (ContentRenderType.Text) {
+        <div class="preview-sticky bg-light p-3 overflow-auto" width="100%">{{previewText}}</div>
+      }
+      @case (ContentRenderType.Image) {
+        <div class="preview-sticky">
+          <img [src]="previewUrl | safeUrl" width="100%" height="100%" alt="{{title}}" />
+        </div>
+      }
+      @case (ContentRenderType.Other) {
+        <object [data]="previewUrl | safeUrl" class="preview-sticky" width="100%"></object>
+      }
     }
-  }
-  @if (renderAsPlainText) {
-    <div [innerText]="previewText" class="preview-sticky bg-light p-3 overflow-auto" width="100%"></div>
-  }
-  @if (showPasswordField) {
-    <div class="password-prompt">
-      <form>
-        <input autocomplete="" autofocus="true" class="form-control" i18n-placeholder placeholder="Enter Password" type="password" (keyup)="onPasswordKeyUp($event)" />
-      </form>
-    </div>
+    @if (requiresPassword) {
+      <div class="password-prompt">
+        <form>
+          <input autocomplete="" autofocus="true" class="form-control" i18n-placeholder placeholder="Enter Password" type="password" (keyup)="onPasswordKeyUp($event)" />
+        </form>
+      </div>
+    }
   }
 </ng-template>

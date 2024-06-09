@@ -71,6 +71,9 @@ import { CustomField, CustomFieldDataType } from 'src/app/data/custom-field'
 import { CustomFieldInstance } from 'src/app/data/custom-field-instance'
 import { CustomFieldsService } from 'src/app/services/rest/custom-fields.service'
 import { PDFDocumentProxy } from '../common/pdf-viewer/typings'
+import { SplitConfirmDialogComponent } from '../common/confirm-dialog/split-confirm-dialog/split-confirm-dialog.component'
+import { RotateConfirmDialogComponent } from '../common/confirm-dialog/rotate-confirm-dialog/rotate-confirm-dialog.component'
+import { HotKeyService } from 'src/app/services/hot-key.service'
 
 enum DocumentDetailNavIDs {
   Details = 1,
@@ -79,6 +82,15 @@ enum DocumentDetailNavIDs {
   Preview = 4,
   Notes = 5,
   Permissions = 6,
+  History = 7,
+}
+
+enum ContentRenderType {
+  PDF = 'pdf',
+  Image = 'image',
+  Text = 'text',
+  Other = 'other',
+  Unknown = 'unknown',
 }
 
 enum ZoomSetting {
@@ -146,7 +158,7 @@ export class DocumentDetailComponent
   })
 
   previewCurrentPage: number = 1
-  previewNumPages: number = 1
+  previewNumPages: number
   previewZoomSetting: ZoomSetting = ZoomSetting.One
   previewZoomScale: ZoomSetting = ZoomSetting.PageWidth
 
@@ -161,7 +173,9 @@ export class DocumentDetailComponent
   ogDate: Date
 
   customFields: CustomField[]
-  public readonly PaperlessCustomFieldDataType = CustomFieldDataType
+  public readonly CustomFieldDataType = CustomFieldDataType
+
+  public readonly ContentRenderType = ContentRenderType
 
   @ViewChild('nav') nav: NgbNav
   @ViewChild('pdfPreview') set pdfPreview(element) {
@@ -196,7 +210,8 @@ export class DocumentDetailComponent
     private permissionsService: PermissionsService,
     private userService: UserService,
     private customFieldsService: CustomFieldsService,
-    private http: HttpClient
+    private http: HttpClient,
+    private hotKeyService: HotKeyService
   ) {
     super()
   }
@@ -209,16 +224,22 @@ export class DocumentDetailComponent
     return this.settings.get(SETTINGS_KEYS.USE_NATIVE_PDF_VIEWER)
   }
 
-  getContentType() {
-    return this.metadata?.has_archive_version
+  get contentRenderType(): ContentRenderType {
+    if (!this.metadata) return ContentRenderType.Unknown
+    const contentType = this.metadata?.has_archive_version
       ? 'application/pdf'
       : this.metadata?.original_mime_type
-  }
 
-  get renderAsPlainText(): boolean {
-    return ['text/plain', 'application/csv', 'text/csv'].includes(
-      this.getContentType()
-    )
+    if (contentType === 'application/pdf') {
+      return ContentRenderType.PDF
+    } else if (
+      ['text/plain', 'application/csv', 'text/csv'].includes(contentType)
+    ) {
+      return ContentRenderType.Text
+    } else if (contentType?.indexOf('image/') === 0) {
+      return ContentRenderType.Image
+    }
+    return ContentRenderType.Other
   }
 
   get isRTL() {
@@ -242,30 +263,61 @@ export class DocumentDetailComponent
         Object.assign(this.document, docValues)
       })
 
-    this.correspondentService
-      .listAll()
-      .pipe(first(), takeUntil(this.unsubscribeNotifier))
-      .subscribe((result) => (this.correspondents = result.results))
-
-    this.documentTypeService
-      .listAll()
-      .pipe(first(), takeUntil(this.unsubscribeNotifier))
-      .subscribe((result) => (this.documentTypes = result.results))
-
-    this.legalEntityService
-      .listAll()
-      .pipe(first(), takeUntil(this.unsubscribeNotifier))
-      .subscribe((result) => (this.legal_entities = result.results))
-
-    this.storagePathService
-      .listAll()
-      .pipe(first(), takeUntil(this.unsubscribeNotifier))
-      .subscribe((result) => (this.storagePaths = result.results))
-
-    this.userService
-      .listAll()
-      .pipe(first(), takeUntil(this.unsubscribeNotifier))
-      .subscribe((result) => (this.users = result.results))
+    if (
+      this.permissionsService.currentUserCan(
+        PermissionAction.View,
+        PermissionType.Correspondent
+      )
+    ) {
+      this.correspondentService
+        .listAll()
+        .pipe(first(), takeUntil(this.unsubscribeNotifier))
+        .subscribe((result) => (this.correspondents = result.results))
+    }
+    if (
+      this.permissionsService.currentUserCan(
+        PermissionAction.View,
+        PermissionType.LegalEntity
+      )
+    ) {
+      this.legalEntityService
+        .listAll()
+        .pipe(first(), takeUntil(this.unsubscribeNotifier))
+        .subscribe((result) => (this.correspondents = result.results))
+    }
+    if (
+      this.permissionsService.currentUserCan(
+        PermissionAction.View,
+        PermissionType.DocumentType
+      )
+    ) {
+      this.documentTypeService
+        .listAll()
+        .pipe(first(), takeUntil(this.unsubscribeNotifier))
+        .subscribe((result) => (this.documentTypes = result.results))
+    }
+    if (
+      this.permissionsService.currentUserCan(
+        PermissionAction.View,
+        PermissionType.StoragePath
+      )
+    ) {
+      this.storagePathService
+        .listAll()
+        .pipe(first(), takeUntil(this.unsubscribeNotifier))
+        .subscribe((result) => (this.storagePaths = result.results))
+    }
+    if (
+      this.permissionsService.currentUserCan(
+        PermissionAction.View,
+        PermissionType.User
+      )
+    ) {
+      this.userService
+        .listAll()
+        .pipe(first(), takeUntil(this.unsubscribeNotifier))
+        .subscribe((result) => (this.users = result.results))
+    }
 
     this.getCustomFields()
 
@@ -322,6 +374,9 @@ export class DocumentDetailComponent
               modal.componentInstance.message = $localize`Saving the document here may overwrite other changes that were made. To restore the existing version, discard your changes or close the document.`
               modal.componentInstance.cancelBtnClass = 'visually-hidden'
               modal.componentInstance.btnCaption = $localize`Ok`
+              modal.componentInstance.confirmClicked.subscribe(() =>
+                modal.close()
+              )
             }
 
             if (this.documentForm.dirty) {
@@ -423,6 +478,40 @@ export class DocumentDetailComponent
         })
       }
     })
+
+    this.hotKeyService
+      .addShortcut({
+        keys: 'control.arrowright',
+        description: $localize`Next document`,
+      })
+      .pipe(takeUntil(this.unsubscribeNotifier))
+      .subscribe(() => {
+        if (this.hasNext()) this.nextDoc()
+      })
+
+    this.hotKeyService
+      .addShortcut({
+        keys: 'control.arrowleft',
+        description: $localize`Previous document`,
+      })
+      .pipe(takeUntil(this.unsubscribeNotifier))
+      .subscribe(() => {
+        if (this.hasPrevious()) this.previousDoc()
+      })
+
+    this.hotKeyService
+      .addShortcut({ keys: 'escape', description: $localize`Close document` })
+      .pipe(takeUntil(this.unsubscribeNotifier))
+      .subscribe(() => {
+        this.close()
+      })
+
+    this.hotKeyService
+      .addShortcut({ keys: 'control.s', description: $localize`Save document` })
+      .pipe(takeUntil(this.unsubscribeNotifier))
+      .subscribe(() => {
+        if (this.openDocumentService.isDirty(this.document)) this.save()
+      })
   }
 
   ngOnDestroy(): void {
@@ -458,7 +547,7 @@ export class DocumentDetailComponent
           this.metadata = result
         },
         error: (error) => {
-          this.metadata = null
+          this.metadata = {} // allow display to fallback to <object> tag
           this.toastService.showError(
             $localize`Error retrieving metadata`,
             error
@@ -622,13 +711,22 @@ export class DocumentDetailComponent
       .update(this.document)
       .pipe(first())
       .subscribe({
-        next: () => {
+        next: (docValues) => {
+          // in case data changed while saving eg removing inbox_tags
+          this.documentForm.patchValue(docValues)
           this.store.next(this.documentForm.value)
+          this.openDocumentService.setDirty(this.document, false)
+          this.openDocumentService.save()
           this.toastService.showInfo($localize`Document saved successfully.`)
-          close && this.close()
           this.networkActive = false
           this.error = null
-          this.openDocumentService.refreshDocument(this.documentId)
+          if (close) {
+            this.close(() =>
+              this.openDocumentService.refreshDocument(this.documentId)
+            )
+          } else {
+            this.openDocumentService.refreshDocument(this.documentId)
+          }
         },
         error: (error) => {
           this.networkActive = false
@@ -683,12 +781,13 @@ export class DocumentDetailComponent
       })
   }
 
-  close() {
+  close(closedCallback: () => void = null) {
     this.openDocumentService
       .closeDocument(this.document)
       .pipe(first())
       .subscribe((closed) => {
         if (!closed) return
+        if (closedCallback) closedCallback()
         if (this.documentListViewService.activeSavedViewId) {
           this.router.navigate([
             'view',
@@ -886,6 +985,17 @@ export class DocumentDetailComponent
     )
   }
 
+  get historyEnabled(): boolean {
+    return (
+      this.settings.get(SETTINGS_KEYS.AUDITLOG_ENABLED) &&
+      this.userIsOwner &&
+      this.permissionsService.currentUserCan(
+        PermissionAction.View,
+        PermissionType.History
+      )
+    )
+  }
+
   notesUpdated(notes: DocumentNote[]) {
     this.document.notes = notes
     this.openDocumentService.refreshDocument(this.documentId)
@@ -894,8 +1004,11 @@ export class DocumentDetailComponent
   get userIsOwner(): boolean {
     let doc: Document = Object.assign({}, this.document)
     // dont disable while editing
-    if (this.document && this.store?.value.permissions_form?.owner) {
-      doc.owner = this.store?.value.permissions_form?.owner
+    if (
+      this.document &&
+      this.store?.value.permissions_form?.hasOwnProperty('owner')
+    ) {
+      doc.owner = this.store.value.permissions_form.owner
     }
     return !this.document || this.permissionsService.currentUserOwnsObject(doc)
   }
@@ -903,8 +1016,11 @@ export class DocumentDetailComponent
   get userCanEdit(): boolean {
     let doc: Document = Object.assign({}, this.document)
     // dont disable while editing
-    if (this.document && this.store?.value.permissions_form?.owner) {
-      doc.owner = this.store?.value.permissions_form?.owner
+    if (
+      this.document &&
+      this.store?.value.permissions_form?.hasOwnProperty('owner')
+    ) {
+      doc.owner = this.store.value.permissions_form.owner
     }
     return (
       !this.document ||
@@ -1019,5 +1135,84 @@ export class DocumentDetailComponent
     )
     this.updateFormForCustomFields(true)
     this.documentForm.updateValueAndValidity()
+  }
+
+  splitDocument() {
+    let modal = this.modalService.open(SplitConfirmDialogComponent, {
+      backdrop: 'static',
+    })
+    modal.componentInstance.title = $localize`Split confirm`
+    modal.componentInstance.messageBold = $localize`This operation will split the selected document(s) into new documents.`
+    modal.componentInstance.btnCaption = $localize`Proceed`
+    modal.componentInstance.documentID = this.document.id
+    modal.componentInstance.confirmClicked
+      .pipe(takeUntil(this.unsubscribeNotifier))
+      .subscribe(() => {
+        modal.componentInstance.buttonsEnabled = false
+        this.documentsService
+          .bulkEdit([this.document.id], 'split', {
+            pages: modal.componentInstance.pagesString,
+          })
+          .pipe(first(), takeUntil(this.unsubscribeNotifier))
+          .subscribe({
+            next: () => {
+              this.toastService.showInfo(
+                $localize`Split operation will begin in the background.`
+              )
+              modal.close()
+            },
+            error: (error) => {
+              if (modal) {
+                modal.componentInstance.buttonsEnabled = true
+              }
+              this.toastService.showError(
+                $localize`Error executing split operation`,
+                error
+              )
+            },
+          })
+      })
+  }
+
+  rotateDocument() {
+    let modal = this.modalService.open(RotateConfirmDialogComponent, {
+      backdrop: 'static',
+    })
+    modal.componentInstance.title = $localize`Rotate confirm`
+    modal.componentInstance.messageBold = $localize`This operation will permanently rotate the original version of the current document.`
+    modal.componentInstance.message = $localize`This will alter the original copy.`
+    modal.componentInstance.btnCaption = $localize`Proceed`
+    modal.componentInstance.documentID = this.document.id
+    modal.componentInstance.showPDFNote = false
+    modal.componentInstance.confirmClicked
+      .pipe(takeUntil(this.unsubscribeNotifier))
+      .subscribe(() => {
+        modal.componentInstance.buttonsEnabled = false
+        this.documentsService
+          .bulkEdit([this.document.id], 'rotate', {
+            degrees: modal.componentInstance.degrees,
+          })
+          .pipe(first(), takeUntil(this.unsubscribeNotifier))
+          .subscribe({
+            next: () => {
+              this.toastService.show({
+                content: $localize`Rotation will begin in the background. Close and re-open the document after the operation has completed to see the changes.`,
+                delay: 8000,
+                action: this.close.bind(this),
+                actionName: $localize`Close`,
+              })
+              modal.close()
+            },
+            error: (error) => {
+              if (modal) {
+                modal.componentInstance.buttonsEnabled = true
+              }
+              this.toastService.showError(
+                $localize`Error executing rotate operation`,
+                error
+              )
+            },
+          })
+      })
   }
 }

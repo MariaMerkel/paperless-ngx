@@ -1,5 +1,8 @@
 import { DatePipe } from '@angular/common'
-import { HttpClientTestingModule } from '@angular/common/http/testing'
+import {
+  HttpClientTestingModule,
+  HttpTestingController,
+} from '@angular/common/http/testing'
 import {
   ComponentFixture,
   TestBed,
@@ -9,8 +12,12 @@ import {
 } from '@angular/core/testing'
 import { FormsModule, ReactiveFormsModule } from '@angular/forms'
 import { By } from '@angular/platform-browser'
-import { Router, ActivatedRoute, convertToParamMap } from '@angular/router'
-import { RouterTestingModule } from '@angular/router/testing'
+import {
+  Router,
+  ActivatedRoute,
+  convertToParamMap,
+  RouterModule,
+} from '@angular/router'
 import {
   NgbModal,
   NgbModule,
@@ -74,6 +81,10 @@ import { CustomFieldsDropdownComponent } from '../common/custom-fields-dropdown/
 import { CustomFieldDataType } from 'src/app/data/custom-field'
 import { CustomFieldsService } from 'src/app/services/rest/custom-fields.service'
 import { PdfViewerComponent } from '../common/pdf-viewer/pdf-viewer.component'
+import { NgxBootstrapIconsModule, allIcons } from 'ngx-bootstrap-icons'
+import { environment } from 'src/environments/environment'
+import { RotateConfirmDialogComponent } from '../common/confirm-dialog/rotate-confirm-dialog/rotate-confirm-dialog.component'
+import { SplitConfirmDialogComponent } from '../common/confirm-dialog/split-confirm-dialog/split-confirm-dialog.component'
 
 const doc: Document = {
   id: 3,
@@ -95,12 +106,12 @@ const doc: Document = {
     {
       created: new Date(),
       note: 'note 1',
-      user: 1,
+      user: { id: 1, username: 'user1' },
     },
     {
       created: new Date(),
       note: 'note 2',
-      user: 2,
+      user: { id: 2, username: 'user2' },
     },
   ],
   custom_fields: [
@@ -140,6 +151,7 @@ describe('DocumentDetailComponent', () => {
   let documentListViewService: DocumentListViewService
   let settingsService: SettingsService
   let customFieldsService: CustomFieldsService
+  let httpTestingController: HttpTestingController
 
   let currentUserCan = true
   let currentUserHasObjectPermissions = true
@@ -171,6 +183,8 @@ describe('DocumentDetailComponent', () => {
         ShareLinksDropdownComponent,
         CustomFieldsDropdownComponent,
         PdfViewerComponent,
+        SplitConfirmDialogComponent,
+        RotateConfirmDialogComponent,
       ],
       providers: [
         DocumentTitlePipe,
@@ -263,13 +277,14 @@ describe('DocumentDetailComponent', () => {
         DatePipe,
       ],
       imports: [
-        RouterTestingModule.withRoutes(routes),
+        RouterModule.forRoot(routes),
         HttpClientTestingModule,
         NgbModule,
         NgSelectModule,
         FormsModule,
         ReactiveFormsModule,
         NgbModalModule,
+        NgxBootstrapIconsModule.pick(allIcons),
       ],
     }).compileComponents()
 
@@ -284,6 +299,7 @@ describe('DocumentDetailComponent', () => {
     settingsService.currentUser = { id: 1 }
     customFieldsService = TestBed.inject(CustomFieldsService)
     fixture = TestBed.createComponent(DocumentDetailComponent)
+    httpTestingController = TestBed.inject(HttpTestingController)
     component = fixture.componentInstance
   })
 
@@ -366,6 +382,26 @@ describe('DocumentDetailComponent', () => {
     currentUserHasObjectPermissions = false
     initNormally()
     expect(component.documentForm.disabled).toBeTruthy()
+  })
+
+  it('should not attempt to retrieve objects if user does not have permissions', () => {
+    currentUserCan = false
+    initNormally()
+    expect(component.correspondents).toBeUndefined()
+    expect(component.documentTypes).toBeUndefined()
+    expect(component.storagePaths).toBeUndefined()
+    expect(component.users).toBeUndefined()
+    httpTestingController.expectNone(`${environment.apiBaseUrl}documents/tags/`)
+    httpTestingController.expectNone(
+      `${environment.apiBaseUrl}documents/correspondents/`
+    )
+    httpTestingController.expectNone(
+      `${environment.apiBaseUrl}documents/document_types/`
+    )
+    httpTestingController.expectNone(
+      `${environment.apiBaseUrl}documents/storage_paths/`
+    )
+    currentUserCan = true
   })
 
   it('should support creating document type', () => {
@@ -713,6 +749,7 @@ describe('DocumentDetailComponent', () => {
 
   it('should support Enter key in password field', () => {
     initNormally()
+    component.metadata = { has_archive_version: true }
     component.onError({ name: 'PasswordException' }) // normally dispatched by pdf viewer
     fixture.detectChanges()
     expect(component.password).toBeUndefined()
@@ -963,9 +1000,9 @@ describe('DocumentDetailComponent', () => {
     fixture.detectChanges()
     expect(component.document.custom_fields).toHaveLength(initialLength - 1)
     expect(component.customFieldFormFields).toHaveLength(initialLength - 1)
-    expect(fixture.debugElement.nativeElement.textContent).not.toContain(
-      'Field 1'
-    )
+    expect(
+      fixture.debugElement.query(By.css('form')).nativeElement.textContent
+    ).not.toContain('Field 1')
     const updateSpy = jest.spyOn(documentService, 'update')
     component.save(true)
     expect(updateSpy.mock.lastCall[0].custom_fields).toHaveLength(
@@ -1019,6 +1056,8 @@ describe('DocumentDetailComponent', () => {
   })
 
   it('should warn when open document does not match doc retrieved from backend on init', () => {
+    let openModal: NgbModalRef
+    modalService.activeInstances.subscribe((modals) => (openModal = modals[0]))
     const modalSpy = jest.spyOn(modalService, 'open')
     const openDoc = Object.assign({}, doc)
     // simulate a document being modified elsewhere and db updated
@@ -1037,6 +1076,138 @@ describe('DocumentDetailComponent', () => {
     )
     fixture.detectChanges() // calls ngOnInit
     expect(modalSpy).toHaveBeenCalledWith(ConfirmDialogComponent)
+    const closeSpy = jest.spyOn(openModal, 'close')
+    const confirmDialog = openModal.componentInstance as ConfirmDialogComponent
+    confirmDialog.confirmClicked.next(confirmDialog)
+    expect(closeSpy).toHaveBeenCalled()
+  })
+
+  it('should change preview element by render type', () => {
+    component.metadata = { has_archive_version: true }
+    initNormally()
+    fixture.detectChanges()
+    expect(component.contentRenderType).toEqual(component.ContentRenderType.PDF)
+    expect(
+      fixture.debugElement.query(By.css('pdf-viewer-container'))
+    ).not.toBeUndefined()
+
+    component.metadata = {
+      has_archive_version: false,
+      original_mime_type: 'text/plain',
+    }
+    fixture.detectChanges()
+    expect(component.contentRenderType).toEqual(
+      component.ContentRenderType.Text
+    )
+    expect(
+      fixture.debugElement.query(By.css('div.preview-sticky'))
+    ).not.toBeUndefined()
+
+    component.metadata = {
+      has_archive_version: false,
+      original_mime_type: 'image/jpg',
+    }
+    fixture.detectChanges()
+    expect(component.contentRenderType).toEqual(
+      component.ContentRenderType.Image
+    )
+    expect(
+      fixture.debugElement.query(By.css('.preview-sticky img'))
+    ).not.toBeUndefined()
+
+    component.metadata = {
+      has_archive_version: false,
+      original_mime_type:
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    }
+    fixture.detectChanges()
+    expect(component.contentRenderType).toEqual(
+      component.ContentRenderType.Other
+    )
+    expect(
+      fixture.debugElement.query(By.css('object.preview-sticky'))
+    ).not.toBeUndefined()
+  })
+
+  it('should support split', () => {
+    let modal: NgbModalRef
+    modalService.activeInstances.subscribe((m) => (modal = m[0]))
+    initNormally()
+    component.splitDocument()
+    expect(modal).not.toBeUndefined()
+    modal.componentInstance.documentID = doc.id
+    modal.componentInstance.totalPages = 5
+    modal.componentInstance.page = 2
+    modal.componentInstance.addSplit()
+    modal.componentInstance.confirm()
+    let req = httpTestingController.expectOne(
+      `${environment.apiBaseUrl}documents/bulk_edit/`
+    )
+    expect(req.request.body).toEqual({
+      documents: [doc.id],
+      method: 'split',
+      parameters: { pages: '1-2,3-5' },
+    })
+    req.error(new ProgressEvent('failed'))
+    modal.componentInstance.confirm()
+    req = httpTestingController.expectOne(
+      `${environment.apiBaseUrl}documents/bulk_edit/`
+    )
+    req.flush(true)
+  })
+
+  it('should support rotate', () => {
+    let modal: NgbModalRef
+    modalService.activeInstances.subscribe((m) => (modal = m[0]))
+    initNormally()
+    component.rotateDocument()
+    expect(modal).not.toBeUndefined()
+    modal.componentInstance.documentID = doc.id
+    modal.componentInstance.rotate()
+    modal.componentInstance.confirm()
+    let req = httpTestingController.expectOne(
+      `${environment.apiBaseUrl}documents/bulk_edit/`
+    )
+    expect(req.request.body).toEqual({
+      documents: [doc.id],
+      method: 'rotate',
+      parameters: { degrees: 90 },
+    })
+    req.error(new ProgressEvent('failed'))
+    modal.componentInstance.confirm()
+    req = httpTestingController.expectOne(
+      `${environment.apiBaseUrl}documents/bulk_edit/`
+    )
+    req.flush(true)
+  })
+
+  it('should support keyboard shortcuts', () => {
+    initNormally()
+
+    jest.spyOn(component, 'hasNext').mockReturnValue(true)
+    const nextSpy = jest.spyOn(component, 'nextDoc')
+    document.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'arrowright', ctrlKey: true })
+    )
+    expect(nextSpy).toHaveBeenCalled()
+
+    jest.spyOn(component, 'hasPrevious').mockReturnValue(true)
+    const prevSpy = jest.spyOn(component, 'previousDoc')
+    document.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'arrowleft', ctrlKey: true })
+    )
+    expect(prevSpy).toHaveBeenCalled()
+
+    jest.spyOn(openDocumentsService, 'isDirty').mockReturnValue(true)
+    const saveSpy = jest.spyOn(component, 'save')
+    document.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 's', ctrlKey: true })
+    )
+    expect(saveSpy).toHaveBeenCalled()
+
+    const closeSpy = jest.spyOn(component, 'close')
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'escape' }))
+    expect(closeSpy).toHaveBeenCalled()
   })
 
   function initNormally() {

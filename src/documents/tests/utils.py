@@ -3,6 +3,7 @@ import tempfile
 import time
 import warnings
 from collections import namedtuple
+from collections.abc import Generator
 from collections.abc import Iterator
 from contextlib import contextmanager
 from os import PathLike
@@ -21,8 +22,10 @@ from django.db.migrations.executor import MigrationExecutor
 from django.test import TransactionTestCase
 from django.test import override_settings
 
+from documents.consumer import ConsumerPlugin
 from documents.data_models import ConsumableDocument
 from documents.data_models import DocumentMetadataOverrides
+from documents.data_models import DocumentSource
 from documents.parsers import ParseError
 from documents.plugins.helpers import ProgressStatusOptions
 
@@ -290,9 +293,7 @@ class TestMigrations(TransactionTestCase):
 
         assert (
             self.migrate_from and self.migrate_to
-        ), "TestCase '{}' must define migrate_from and migrate_to properties".format(
-            type(self).__name__,
-        )
+        ), f"TestCase '{type(self).__name__}' must define migrate_from and migrate_to properties"
         self.migrate_from = [(self.app, self.migrate_from)]
         if self.dependencies is not None:
             self.migrate_from.extend(self.dependencies)
@@ -328,6 +329,30 @@ class SampleDirMixin:
     BARCODE_SAMPLE_DIR = SAMPLE_DIR / "barcodes"
 
 
+class GetConsumerMixin:
+    @contextmanager
+    def get_consumer(
+        self,
+        filepath: Path,
+        overrides: Union[DocumentMetadataOverrides, None] = None,
+        source: DocumentSource = DocumentSource.ConsumeFolder,
+    ) -> Generator[ConsumerPlugin, None, None]:
+        # Store this for verification
+        self.status = DummyProgressManager(filepath.name, None)
+        reader = ConsumerPlugin(
+            ConsumableDocument(source, original_file=filepath),
+            overrides or DocumentMetadataOverrides(),
+            self.status,  # type: ignore
+            self.dirs.scratch_dir,
+            "task-id",
+        )
+        reader.setup()
+        try:
+            yield reader
+        finally:
+            reader.cleanup()
+
+
 class DummyProgressManager:
     """
     A dummy handler for progress management that doesn't actually try to
@@ -340,7 +365,6 @@ class DummyProgressManager:
     def __init__(self, filename: str, task_id: Optional[str] = None) -> None:
         self.filename = filename
         self.task_id = task_id
-        print("hello world")
         self.payloads = []
 
     def __enter__(self):

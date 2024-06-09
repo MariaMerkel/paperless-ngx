@@ -4,6 +4,7 @@ import tempfile
 from pathlib import Path
 from unittest import mock
 
+from auditlog.context import disable_auditlog
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import DatabaseError
@@ -143,7 +144,9 @@ class TestFileHandling(DirectoriesMixin, FileSystemAssertsMixin, TestCase):
         # Set a correspondent and save the document
         document.correspondent = Correspondent.objects.get_or_create(name="test")[0]
 
-        with mock.patch("documents.signals.handlers.Document.objects.filter") as m:
+        with mock.patch(
+            "documents.signals.handlers.Document.objects.filter",
+        ) as m, disable_auditlog():
             m.side_effect = DatabaseError()
             document.save()
 
@@ -470,12 +473,12 @@ class TestFileHandling(DirectoriesMixin, FileSystemAssertsMixin, TestCase):
 
     def test_try_delete_empty_directories(self):
         # Create our working directory
-        tmp = os.path.join(settings.ORIGINALS_DIR, "test_delete_empty")
-        os.makedirs(tmp)
+        tmp: Path = settings.ORIGINALS_DIR / "test_delete_empty"
+        tmp.mkdir(exist_ok=True, parents=True)
 
-        os.makedirs(os.path.join(tmp, "notempty"))
-        Path(os.path.join(tmp, "notempty", "file")).touch()
-        os.makedirs(os.path.join(tmp, "notempty", "empty"))
+        (tmp / "notempty").mkdir(exist_ok=True, parents=True)
+        (tmp / "notempty" / "file").touch()
+        (tmp / "notempty" / "empty").mkdir(exist_ok=True, parents=True)
 
         delete_empty_directories(
             os.path.join(tmp, "notempty", "empty"),
@@ -557,20 +560,21 @@ class TestFileHandling(DirectoriesMixin, FileSystemAssertsMixin, TestCase):
     @override_settings(FILENAME_FORMAT="{title}")
     @mock.patch("documents.signals.handlers.Document.objects.filter")
     def test_no_update_without_change(self, m):
-        doc = Document.objects.create(
-            title="document",
-            filename="document.pdf",
-            archive_filename="document.pdf",
-            checksum="A",
-            archive_checksum="B",
-            mime_type="application/pdf",
-        )
-        Path(doc.source_path).touch()
-        Path(doc.archive_path).touch()
+        with disable_auditlog():
+            doc = Document.objects.create(
+                title="document",
+                filename="document.pdf",
+                archive_filename="document.pdf",
+                checksum="A",
+                archive_checksum="B",
+                mime_type="application/pdf",
+            )
+            Path(doc.source_path).touch()
+            Path(doc.archive_path).touch()
 
-        doc.save()
+            doc.save()
 
-        m.assert_not_called()
+            m.assert_not_called()
 
 
 class TestFileHandlingWithArchive(DirectoriesMixin, FileSystemAssertsMixin, TestCase):
@@ -647,7 +651,7 @@ class TestFileHandlingWithArchive(DirectoriesMixin, FileSystemAssertsMixin, Test
         existing_archive_file = os.path.join(settings.ARCHIVE_DIR, "none", "my_doc.pdf")
         Path(original).touch()
         Path(archive).touch()
-        os.makedirs(os.path.join(settings.ARCHIVE_DIR, "none"))
+        (settings.ARCHIVE_DIR / "none").mkdir(parents=True, exist_ok=True)
         Path(existing_archive_file).touch()
         doc = Document.objects.create(
             mime_type="application/pdf",

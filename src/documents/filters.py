@@ -121,6 +121,8 @@ class SharedByUser(Filter):
         ctype = ContentType.objects.get_for_model(self.model)
         UserObjectPermission = get_user_obj_perms_model()
         GroupObjectPermission = get_group_obj_perms_model()
+        # see https://github.com/paperless-ngx/paperless-ngx/issues/5392, we limit subqueries
+        # to 1 because Postgres doesn't like returning > 1 row, but all we care about is > 0
         return (
             qs.filter(
                 owner_id=value,
@@ -130,7 +132,7 @@ class SharedByUser(Filter):
                     UserObjectPermission.objects.filter(
                         content_type=ctype,
                         object_pk=Cast(OuterRef("pk"), CharField()),
-                    ).values("user_id"),
+                    ).values("user_id")[:1],
                 ),
             )
             .annotate(
@@ -138,7 +140,7 @@ class SharedByUser(Filter):
                     GroupObjectPermission.objects.filter(
                         content_type=ctype,
                         object_pk=Cast(OuterRef("pk"), CharField()),
-                    ).values("group_id"),
+                    ).values("group_id")[:1],
                 ),
             )
             .filter(
@@ -166,8 +168,11 @@ class CustomFieldsFilter(Filter):
                 | qs.filter(custom_fields__value_text__icontains=value)
                 | qs.filter(custom_fields__value_bool__icontains=value)
                 | qs.filter(custom_fields__value_int__icontains=value)
+                | qs.filter(custom_fields__value_float__icontains=value)
                 | qs.filter(custom_fields__value_date__icontains=value)
                 | qs.filter(custom_fields__value_url__icontains=value)
+                | qs.filter(custom_fields__value_monetary__icontains=value)
+                | qs.filter(custom_fields__value_document_ids__icontains=value)
             )
         else:
             return qs
@@ -202,6 +207,25 @@ class DocumentFilterSet(FilterSet):
     owner__id__none = ObjectFilter(field_name="owner", exclude=True)
 
     custom_fields__icontains = CustomFieldsFilter()
+
+    custom_fields__id__all = ObjectFilter(field_name="custom_fields__field")
+
+    custom_fields__id__none = ObjectFilter(
+        field_name="custom_fields__field",
+        exclude=True,
+    )
+
+    custom_fields__id__in = ObjectFilter(
+        field_name="custom_fields__field",
+        in_list=True,
+    )
+
+    has_custom_fields = BooleanFilter(
+        label="Has custom field",
+        field_name="custom_fields",
+        lookup_expr="isnull",
+        exclude=True,
+    )
 
     shared_by__id = SharedByUser()
 

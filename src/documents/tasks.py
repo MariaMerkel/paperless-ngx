@@ -18,10 +18,10 @@ from whoosh.writing import AsyncWriter
 from documents import index
 from documents import sanity_checker
 from documents.barcodes import BarcodePlugin
+from documents.caching import clear_document_caches
 from documents.classifier import DocumentClassifier
 from documents.classifier import load_classifier
-from documents.consumer import Consumer
-from documents.consumer import ConsumerError
+from documents.consumer import ConsumerPlugin
 from documents.consumer import WorkflowTriggerPlugin
 from documents.data_models import ConsumableDocument
 from documents.data_models import DocumentMetadataOverrides
@@ -116,6 +116,7 @@ def consume_file(
         CollatePlugin,
         BarcodePlugin,
         WorkflowTriggerPlugin,
+        ConsumerPlugin,
     ]
 
     with ProgressManager(
@@ -163,34 +164,7 @@ def consume_file(
             finally:
                 plugin.cleanup()
 
-    # continue with consumption if no barcode was found
-    document = Consumer().try_consume_file(
-        input_doc.original_file,
-        override_filename=overrides.filename,
-        override_title=overrides.title,
-        override_correspondent_id=overrides.correspondent_id,
-        override_legal_entity_id=overrides.legal_entity_id,
-        override_document_type_id=overrides.document_type_id,
-        override_tag_ids=overrides.tag_ids,
-        override_storage_path_id=overrides.storage_path_id,
-        override_created=overrides.created,
-        override_asn=overrides.asn,
-        override_owner_id=overrides.owner_id,
-        override_view_users=overrides.view_users,
-        override_view_groups=overrides.view_groups,
-        override_change_users=overrides.change_users,
-        override_change_groups=overrides.change_groups,
-        override_custom_field_ids=overrides.custom_field_ids,
-        task_id=self.request.id,
-    )
-
-    if document:
-        return f"Success. New document id {document.pk} created"
-    else:
-        raise ConsumerError(
-            "Unknown error: Returned document was null, but "
-            "no error message was given.",
-        )
+    return msg
 
 
 @shared_task
@@ -216,6 +190,7 @@ def bulk_update_documents(document_ids):
     ix = index.open_index()
 
     for doc in documents:
+        clear_document_caches(doc.pk)
         document_updated.send(
             sender=None,
             document=doc,
@@ -307,6 +282,8 @@ def update_document_archive_file(document_id):
 
             with index.open_index_writer() as writer:
                 index.update_document(writer, document)
+
+            clear_document_caches(document.pk)
 
     except Exception:
         logger.exception(

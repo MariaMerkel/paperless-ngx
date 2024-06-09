@@ -276,7 +276,9 @@ def consumable_document_matches_workflow(
     reason = ""
 
     # Document source vs trigger source
-    if document.source not in [int(x) for x in list(trigger.sources)]:
+    if len(trigger.sources) > 0 and document.source not in [
+        int(x) for x in list(trigger.sources)
+    ]:
         reason = (
             f"Document source {document.source.name} not in"
             f" {[DocumentSource(int(x)).name for x in trigger.sources]}",
@@ -285,8 +287,7 @@ def consumable_document_matches_workflow(
 
     # Document mail rule vs trigger mail rule
     if (
-        document.mailrule_id is not None
-        and trigger.filter_mailrule is not None
+        trigger.filter_mailrule is not None
         and document.mailrule_id != trigger.filter_mailrule.pk
     ):
         reason = (

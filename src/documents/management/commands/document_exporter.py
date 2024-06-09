@@ -9,6 +9,9 @@ from typing import Optional
 
 import tqdm
 from django.conf import settings
+
+if settings.AUDIT_LOG_ENABLED:
+    from auditlog.models import LogEntry
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import Permission
 from django.contrib.auth.models import User
@@ -183,7 +186,7 @@ class Command(BaseCommand):
         if self.zip_export:
             self.original_target = self.target
 
-            os.makedirs(settings.SCRATCH_DIR, exist_ok=True)
+            settings.SCRATCH_DIR.mkdir(parents=True, exist_ok=True)
             temp_dir = tempfile.TemporaryDirectory(
                 dir=settings.SCRATCH_DIR,
                 prefix="paperless-export",
@@ -311,6 +314,11 @@ class Command(BaseCommand):
             manifest += json.loads(
                 serializers.serialize("json", ApplicationConfiguration.objects.all()),
             )
+
+            if settings.AUDIT_LOG_ENABLED:
+                manifest += json.loads(
+                    serializers.serialize("json", LogEntry.objects.all()),
+                )
 
             # These are treated specially and included in the per-document manifest
             # if that setting is enabled.  Otherwise, they are just exported to the bulk

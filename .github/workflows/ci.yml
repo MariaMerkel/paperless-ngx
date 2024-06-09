@@ -16,7 +16,7 @@ on:
 env:
   # This is the version of pipenv all the steps will use
   # If changing this, change Dockerfile
-  DEFAULT_PIP_ENV_VERSION: "2023.11.15"
+  DEFAULT_PIP_ENV_VERSION: "2023.12.1"
   # This is the default version of Python to use in most steps which aren't specific
   DEFAULT_PYTHON_VERSION: "3.10"
 
@@ -42,7 +42,7 @@ jobs:
           python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
       -
         name: Check files
-        uses: pre-commit/action@v3.0.0
+        uses: pre-commit/action@v3.0.1
 
   documentation:
     name: "Build & Deploy Documentation"
@@ -184,7 +184,7 @@ jobs:
           cache-dependency-path: 'src-ui/package-lock.json'
       - name: Cache frontend dependencies
         id: cache-frontend-deps
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.npm
@@ -221,7 +221,7 @@ jobs:
           cache-dependency-path: 'src-ui/package-lock.json'
       - name: Cache frontend dependencies
         id: cache-frontend-deps
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.npm
@@ -283,7 +283,7 @@ jobs:
           merge-multiple: true
       -
         name: Upload frontend coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           # not required for public repos, but intermittently fails otherwise
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -299,7 +299,7 @@ jobs:
           path: src/
       -
         name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           # not required for public repos, but intermittently fails otherwise
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -310,7 +310,7 @@ jobs:
   build-docker-image:
     name: Build Docker image for ${{ github.ref_name }}
     runs-on: ubuntu-22.04
-    if: github.event_name == 'push' && (startsWith(github.ref, 'refs/heads/feature-') || github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/beta' || contains(github.ref, 'beta.rc') || startsWith(github.ref, 'refs/tags/v'))
+    if: github.event_name == 'push' && (startsWith(github.ref, 'refs/heads/feature-') || startsWith(github.ref, 'refs/heads/fix-') || github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/beta' || contains(github.ref, 'beta.rc') || startsWith(github.ref, 'refs/tags/v'))
     concurrency:
       group: ${{ github.workflow }}-build-docker-image-${{ github.ref_name }}
       cancel-in-progress: true
@@ -577,7 +577,7 @@ jobs:
       -
         name: Create Release and Changelog
         id: create-release
-        uses: release-drafter/release-drafter@v5
+        uses: release-drafter/release-drafter@v6
         with:
           name: Paperless-ngx ${{ steps.get_version.outputs.version }}
           tag: ${{ steps.get_version.outputs.version }}
@@ -645,7 +645,7 @@ jobs:
           script: |
             const { repo, owner } = context.repo;
             const result = await github.rest.pulls.create({
-              title: '[Documentation] Add ${{ needs.publish-release.outputs.version }} changelog',
+              title: 'Documentation: Add ${{ needs.publish-release.outputs.version }} changelog',
               owner,
               repo,
               head: '${{ needs.publish-release.outputs.version }}-changelog',

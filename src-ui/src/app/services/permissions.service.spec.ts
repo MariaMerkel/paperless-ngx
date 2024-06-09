@@ -256,18 +256,14 @@ describe('PermissionsService', () => {
         'view_workflow',
         'change_workflow',
         'delete_workflow',
-        'add_workflowtrigger',
-        'view_workflowtrigger',
-        'change_workflowtrigger',
-        'delete_workflowtrigger',
-        'add_workflowaction',
-        'view_workflowaction',
-        'change_workflowaction',
-        'delete_workflowaction',
         'add_customfield',
         'view_customfield',
         'change_customfield',
         'delete_customfield',
+        'add_applicationconfiguration',
+        'change_applicationconfiguration',
+        'delete_applicationconfiguration',
+        'view_applicationconfiguration',
       ],
       {
         username: 'testuser',
@@ -421,5 +417,26 @@ describe('PermissionsService', () => {
         docGroupEditGranted
       )
     ).toBeTruthy()
+  })
+
+  it('correctly checks admin status', () => {
+    permissionsService.initialize([], {
+      username: 'testuser',
+      last_name: 'User',
+      first_name: 'Test',
+      id: 1,
+      is_staff: true,
+    })
+
+    expect(permissionsService.isAdmin()).toBeTruthy()
+
+    permissionsService.initialize([], {
+      username: 'testuser',
+      last_name: 'User',
+      first_name: 'Test',
+      id: 1,
+    })
+
+    expect(permissionsService.isAdmin()).toBeFalsy()
   })
 })

@@ -153,10 +153,7 @@ export const routes: Routes = [
         component: LogsComponent,
         canActivate: [PermissionsGuard],
         data: {
-          requiredPermission: {
-            action: PermissionAction.View,
-            type: PermissionType.Admin,
-          },
+          requireAdmin: true,
         },
       },
       // redirect old paths
@@ -175,7 +172,7 @@ export const routes: Routes = [
         canActivate: [PermissionsGuard],
         data: {
           requiredPermission: {
-            action: PermissionAction.View,
+            action: PermissionAction.Change,
             type: PermissionType.UISettings,
           },
         },
@@ -198,8 +195,8 @@ export const routes: Routes = [
         canActivate: [PermissionsGuard],
         data: {
           requiredPermission: {
-            action: PermissionAction.View,
-            type: PermissionType.Admin,
+            action: PermissionAction.Change,
+            type: PermissionType.AppConfig,
           },
         },
       },

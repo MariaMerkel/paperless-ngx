@@ -34,6 +34,8 @@ matcher.
         `redis://<username>:<password>@<host>:<port>`
     -   With the requirepass option PAPERLESS_REDIS =
         `redis://:<password>@<host>:<port>`
+    -   To include the redis database index PAPERLESS_REDIS =
+        `redis://<username>:<password>@<host>:<port>/<DBIndex>`
 
     [More information on securing your Redis
     Instance](https://redis.io/docs/getting-started/#securing-redis).
@@ -262,7 +264,7 @@ directory. See [File name handling](advanced_usage.md#file-name-handling) for de
 : Tells paperless to replace placeholders in
 `PAPERLESS_FILENAME_FORMAT` that would resolve to
 'none' to be omitted from the resulting filename. This also holds
-true for directory names. See [File name handling](advanced_usage.md#file-name-handling) for
+true for directory names. See [File name handling](advanced_usage.md#empty-placeholders) for
 details.
 
     Defaults to `false` which disables this feature.
@@ -452,19 +454,32 @@ applications.
 
         This will allow authentication by simply adding a
         `Remote-User: <username>` header to a request. Use with care! You
-        especially *must:   ensure that any such header is not passed from
-        your proxy server to paperless.
+        especially *must* ensure that any such header is not passed from
+        external requests to your reverse-proxy to paperless (that would
+        effectively bypass all authentication).
 
-        If you're exposing paperless to the internet directly, do not use
-        this.
+        If you're exposing paperless to the internet directly (i.e.
+        without a reverse proxy), do not use this.
 
         Also see the warning [in the official documentation](https://docs.djangoproject.com/en/4.1/howto/auth-remote-user/#configuration).
 
     Defaults to "false" which disables this feature.
 
+#### [`PAPERLESS_ENABLE_HTTP_REMOTE_USER_API=<bool>`](#PAPERLESS_ENABLE_HTTP_REMOTE_USER_API) {#PAPERLESS_ENABLE_HTTP_REMOTE_USER_API}
+
+: Allows authentication via HTTP_REMOTE_USER directly against the API
+
+    !!! warning
+
+        See the warning above about securing your installation when using remote user header authentication. This setting is separate from
+        `PAPERLESS_ENABLE_HTTP_REMOTE_USER` to avoid introducing a security vulnerability to existing reverse proxy setups. As above,
+        ensure that your reverse proxy does not simply pass the `Remote-User` header from the internet to paperless.
+
+    Defaults to "false" which disables this feature.
+
 #### [`PAPERLESS_HTTP_REMOTE_USER_HEADER_NAME=<str>`](#PAPERLESS_HTTP_REMOTE_USER_HEADER_NAME) {#PAPERLESS_HTTP_REMOTE_USER_HEADER_NAME}
 
-: If "PAPERLESS_ENABLE_HTTP_REMOTE_USER" is enabled, this
+: If "PAPERLESS_ENABLE_HTTP_REMOTE_USER" or `PAPERLESS_ENABLE_HTTP_REMOTE_USER_API` are enabled, this
 property allows to customize the name of the HTTP header from which
 the authenticated username is extracted. Values are in terms of
 [HttpRequest.META](https://docs.djangoproject.com/en/4.1/ref/request-response/#django.http.HttpRequest.META).
@@ -476,8 +491,9 @@ followed by the normalized actual header name.
 #### [`PAPERLESS_LOGOUT_REDIRECT_URL=<str>`](#PAPERLESS_LOGOUT_REDIRECT_URL) {#PAPERLESS_LOGOUT_REDIRECT_URL}
 
 : URL to redirect the user to after a logout. This can be used
-together with PAPERLESS_ENABLE_HTTP_REMOTE_USER to
-redirect the user back to the SSO application's logout page.
+together with PAPERLESS_ENABLE_HTTP_REMOTE_USER and SSO to
+redirect the user back to the SSO application's logout page to
+complete the logout process.
 
     Defaults to None, which disables this feature.
 
@@ -520,6 +536,64 @@ This is for use with self-signed certificates against local IMAP servers.
 
     Settings this value has security implications for the security of your email.
     Understand what it does and be sure you need to before setting.
+
+#### [`PAPERLESS_SOCIALACCOUNT_PROVIDERS=<json>`](#PAPERLESS_SOCIALACCOUNT_PROVIDERS) {#PAPERLESS_SOCIALACCOUNT_PROVIDERS}
+
+: This variable is used to setup login and signup via social account providers which are compatible with django-allauth.
+See the corresponding [django-allauth documentation](https://docs.allauth.org/en/latest/socialaccount/providers/index.html)
+for a list of provider configurations. You will also need to include the relevant Django 'application' inside the
+[PAPERLESS_APPS](#PAPERLESS_APPS) setting to activate that specific authentication provider (e.g. `allauth.socialaccount.providers.openid_connect` for the [OIDC Connect provider](https://docs.allauth.org/en/latest/socialaccount/providers/openid_connect.html)).
+
+    Defaults to None, which does not enable any third party authentication systems.
+
+#### [`PAPERLESS_SOCIAL_AUTO_SIGNUP=<bool>`](#PAPERLESS_SOCIAL_AUTO_SIGNUP) {#PAPERLESS_SOCIAL_AUTO_SIGNUP}
+
+: Attempt to signup the user using retrieved email, username etc from the third party authentication
+system. See the corresponding
+[django-allauth documentation](https://docs.allauth.org/en/latest/socialaccount/configuration.html)
+
+    Defaults to False
+
+#### [`PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS=<bool>`](#PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS) {#PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS}
+
+: Allow users to signup for a new Paperless-ngx account using any setup third party authentication systems.
+
+    Defaults to True
+
+#### [`PAPERLESS_ACCOUNT_ALLOW_SIGNUPS=<bool>`](#PAPERLESS_ACCOUNT_ALLOW_SIGNUPS) {#PAPERLESS_ACCOUNT_ALLOW_SIGNUPS}
+
+: Allow users to signup for a new Paperless-ngx account.
+
+    Defaults to False
+
+#### [`PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL=<string>`](#PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL) {#PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL}
+
+: The protocol used when generating URLs, e.g. login callback URLs. See the corresponding
+[django-allauth documentation](https://docs.allauth.org/en/latest/account/configuration.html)
+
+    Defaults to 'https'
+
+#### [`PAPERLESS_ACCOUNT_EMAIL_VERIFICATION=<string>`](#PAPERLESS_ACCOUNT_EMAIL_VERIFICATION) {#PAPERLESS_ACCOUNT_EMAIL_VERIFICATION}
+
+: Determines whether email addresses are verified during signup (as performed by Django allauth). See the relevant
+[paperless settings](#PAPERLESS_EMAIL_HOST) and [the allauth docs](https://docs.allauth.org/en/latest/account/configuration.html)
+
+    Defaults to 'optional'
+
+!!! note
+
+    If you do not have a working email server set up you should set this to 'none'.
+
+#### [`PAPERLESS_DISABLE_REGULAR_LOGIN=<bool>`](#PAPERLESS_DISABLE_REGULAR_LOGIN) {#PAPERLESS_DISABLE_REGULAR_LOGIN}
+
+: Disables the regular frontend username / password login, i.e. once you have setup SSO. Note that this setting does not disable the Django admin login. To prevent logins directly to Django, consider blocking `/admin/` in your [web server or reverse proxy configuration](https://github.com/paperless-ngx/paperless-ngx/wiki/Using-a-Reverse-Proxy-with-Paperless-ngx).
+
+    Defaults to False
+
+#### [`PAPERLESS_ACCOUNT_SESSION_REMEMBER=<bool>`](#PAPERLESS_ACCOUNT_SESSION_REMEMBER) {#PAPERLESS_ACCOUNT_SESSION_REMEMBER}
+
+: See the corresponding
+[django-allauth documentation](https://docs.allauth.org/en/latest/account/configuration.html)
 
 ## OCR settings {#ocr}
 
@@ -698,6 +772,8 @@ but could result in missing text content.
     If unset, will default to the value determined by
     [Pillow](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.MAX_IMAGE_PIXELS).
 
+    Setting this value to 0 will entirely disable the limit.  See the below warning.
+
     !!! note
 
         Increasing this limit could cause Paperless to consume additional
@@ -707,7 +783,7 @@ but could result in missing text content.
     !!! warning
 
         The limit is intended to prevent malicious files from consuming
-        system resources and causing crashes and other errors. Only increase
+        system resources and causing crashes and other errors. Only change
         this value if you are certain your documents are not malicious and
         you need the text which was not OCRed
 
@@ -891,6 +967,28 @@ documents.
 
     Default is none, which disables the temporary directory.
 
+#### [`PAPERLESS_APPS=<string>`](#PAPERLESS_APPS) {#PAPERLESS_APPS}
+
+: A comma-separated list of Django apps to be included in Django's
+[`INSTALLED_APPS`](https://docs.djangoproject.com/en/5.0/ref/applications/). This setting should
+be used with caution!
+
+    Defaults to None, which does not add any additional apps.
+
+#### [`PAPERLESS_MAX_IMAGE_PIXELS=<number>`](#PAPERLESS_MAX_IMAGE_PIXELS) {#PAPERLESS_MAX_IMAGE_PIXELS}
+
+: Configures the maximum size of an image PIL will allow to load without warning or error.
+
+: If unset, will default to the value determined by
+[Pillow](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.MAX_IMAGE_PIXELS).
+
+    Defaults to None, which does change the limit
+
+    !!! warning
+
+        This limit is designed to prevent denial of service from malicious files.
+        It should only be raised or disabled in certain circumstances and with great care.
+
 ## Document Consumption {#consume_config}
 
 #### [`PAPERLESS_CONSUMER_DELETE_DUPLICATES=<bool>`](#PAPERLESS_CONSUMER_DELETE_DUPLICATES) {#PAPERLESS_CONSUMER_DELETE_DUPLICATES}
@@ -938,7 +1036,7 @@ or hidden folders some tools use to store data.
     `._foo.pdf` and `._bar/foo.pdf`
 
     Defaults to
-    `[".DS_STORE/*", "._*", ".stfolder/*", ".stversions/*", ".localized/*", "desktop.ini", "@eaDir/*"]`.
+    `[".DS_Store", ".DS_STORE", "._*", ".stfolder/*", ".stversions/*", ".localized/*", "desktop.ini", "@eaDir/*", "Thumbs.db"]`.
 
 #### [`PAPERLESS_CONSUMER_BARCODE_SCANNER=<string>`](#PAPERLESS_CONSUMER_BARCODE_SCANNER) {#PAPERLESS_CONSUMER_BARCODE_SCANNER}
 
@@ -1049,8 +1147,10 @@ system changes with `inotify`.
 
 #### [`PAPERLESS_CONSUMER_POLLING_RETRY_COUNT=<num>`](#PAPERLESS_CONSUMER_POLLING_RETRY_COUNT) {#PAPERLESS_CONSUMER_POLLING_RETRY_COUNT}
 
-: If consumer polling is enabled, sets the number of times paperless
-will check for a file to remain unmodified.
+: If consumer polling is enabled, sets the maximum number of times
+paperless will check for a file to remain unmodified. If a file's
+modification time and size are identical for two consecutive checks, it
+will be consumed.
 
     Defaults to 5.
 
@@ -1159,15 +1259,62 @@ combination with PAPERLESS_CONSUMER_BARCODE_UPSCALE bigger than 1.0.
 
     Defaults to "300"
 
+#### [`PAPERLESS_CONSUMER_ENABLE_TAG_BARCODE=<bool>`](#PAPERLESS_CONSUMER_ENABLE_TAG_BARCODE) {#PAPERLESS_CONSUMER_ENABLE_TAG_BARCODE}
+
+: Enables the detection of barcodes in the scanned document and
+assigns or creates tags if a properly formatted barcode is detected.
+
+    The barcode must match one of the (configurable) regular expressions.
+    If the barcode text contains ',' (comma), it is split into multiple
+    barcodes which are individually processed for tagging.
+
+    Matching is case insensitive.
+
+    Defaults to false.
+
+#### [`PAPERLESS_CONSUMER_TAG_BARCODE_MAPPING=<json dict>`](#PAPERLESS_CONSUMER_TAG_BARCODE_MAPPING) {#PAPERLESS_CONSUMER_TAG_BARCODE_MAPPING}
+
+: Defines a dictionary of filter regex and substitute expressions.
+
+    Syntax: {"<regex>": "<substitute>" [,...]]}
+
+    A barcode is considered for tagging if the barcode text matches
+    at least one of the provided <regex> pattern.
+
+    If a match is found, the <substitute> rule is applied. This allows very
+    versatile reformatting and mapping of barcode pattern to tag values.
+
+    If a tag is not found it will be created.
+
+    Defaults to:
+
+    {"TAG:(.*)": "\\g<1>"} which defines
+    - a regex TAG:(.*) which includes barcodes beginning with TAG:
+      followed by any text that gets stored into match group #1 and
+    - a substitute \\g<1> that replaces the original barcode text
+      by the content in match group #1.
+    Consequently, the tag is the barcode text without its TAG: prefix.
+
+    More examples:
+
+    {"ASN12.*": "JOHN", "ASN13.*": "SMITH"} for example maps
+    - ASN12nnnn barcodes to the tag JOHN and
+    - ASN13nnnn barcodes to the tag SMITH.
+
+    {"T-J": "JOHN", "T-S": "SMITH", "T-D": "DOE"} directly maps
+    - T-J barcodes to the tag JOHN,
+    - T-S barcodes to the tag SMITH and
+    - T-D barcodes to the tag DOE.
+
+    Please refer to the Python regex documentation for more information.
+
 ## Audit Trail
 
 #### [`PAPERLESS_AUDIT_LOG_ENABLED=<bool>`](#PAPERLESS_AUDIT_LOG_ENABLED) {#PAPERLESS_AUDIT_LOG_ENABLED}
 
-: Enables an audit trail for documents, document types, correspondents, and tags. Log entries can be viewed in the Django backend only.
+: Enables the audit trail for documents, document types, correspondents, and tags.
 
-    !!! warning
-
-        Once enabled cannot be disabled
+    Defaults to true.
 
 ## Collate Double-Sided Documents {#collate}
 
@@ -1328,6 +1475,12 @@ specified as "chi-tra".
 started by the container.
 
     You can read more about this in the [advanced documentation](advanced_usage.md#celery-monitoring).
+
+#### [`PAPERLESS_SUPERVISORD_WORKING_DIR=<defined>`](#PAPERLESS_SUPERVISORD_WORKING_DIR) {#PAPERLESS_SUPERVISORD_WORKING_DIR}
+
+: If this environment variable is defined, the `supervisord.log` and `supervisord.pid` file will be created under the specified path in `PAPERLESS_SUPERVISORD_WORKING_DIR`. Setting `PAPERLESS_SUPERVISORD_WORKING_DIR=/tmp` and `PYTHONPYCACHEPREFIX=/tmp/pycache` would allow paperless to work on a read-only filesystem.
+
+    Please take note that the `PAPERLESS_DATA_DIR` and `PAPERLESS_MEDIA_ROOT` paths still have to be writable, just like the `PAPERLESS_SUPERVISORD_WORKING_DIR`. The can be archived by using bind or volume mounts. Only works in the container is run as user *paperless*
 
 ## Frontend Settings
 

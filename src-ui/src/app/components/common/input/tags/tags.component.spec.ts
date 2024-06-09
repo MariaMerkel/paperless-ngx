@@ -30,6 +30,7 @@ import { ColorComponent } from '../color/color.component'
 import { PermissionsFormComponent } from '../permissions/permissions-form/permissions-form.component'
 import { SelectComponent } from '../select/select.component'
 import { SettingsService } from 'src/app/services/settings.service'
+import { NgxBootstrapIconsModule, allIcons } from 'ngx-bootstrap-icons'
 
 const tags: Tag[] = [
   {
@@ -99,6 +100,7 @@ describe('TagsComponent', () => {
         NgbModalModule,
         NgbAccordionModule,
         NgbPopoverModule,
+        NgxBootstrapIconsModule.pick(allIcons),
       ],
     }).compileComponents()
 
@@ -166,5 +168,13 @@ describe('TagsComponent', () => {
     component.tags = tags
     expect(component.getTag(2)).toEqual(tags[1])
     expect(component.getTag(4)).toBeUndefined()
+  })
+
+  it('should emit filtered documents', () => {
+    component.value = [10]
+    component.tags = tags
+    const emitSpy = jest.spyOn(component.filterDocuments, 'emit')
+    component.onFilterDocuments()
+    expect(emitSpy).toHaveBeenCalledWith([tags[2]])
   })
 })
