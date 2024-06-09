@@ -123,13 +123,13 @@ export class DocumentService extends AbstractPaperlessService<Document> {
       )
     }
     if (
-      doc.document_type &&
+      doc.legal_entity &&
       this.permissionsService.currentUserCan(
         PermissionAction.View,
         PermissionType.LegalEntity
       )
     ) {
-      doc.legal_entity$ = this.documentTypeService.getCached(doc.legal_entity)
+      doc.legal_entity$ = this.legalEntityService.getCached(doc.legal_entity)
     }
     if (
       doc.document_type &&
