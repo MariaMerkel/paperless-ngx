@@ -125,6 +125,7 @@ from documents.models import WorkflowTrigger
 from documents.parsers import get_parser_class_for_mime_type
 from documents.parsers import parse_date_generator
 from documents.permissions import PaperlessAdminPermissions
+from documents.permissions import PaperlessNotePermissions
 from documents.permissions import PaperlessObjectPermissions
 from documents.permissions import get_objects_for_user_owner_aware
 from documents.permissions import has_perms_owner_aware
@@ -256,14 +257,7 @@ class PermissionsAwareDocumentCountMixin(PassUserMixin):
 class CorrespondentViewSet(ModelViewSet, PermissionsAwareDocumentCountMixin):
     model = Correspondent
 
-    queryset = (
-        Correspondent.objects.prefetch_related("documents")
-        .annotate(
-            last_correspondence=Max("documents__created"),
-        )
-        .select_related("owner")
-        .order_by(Lower("name"))
-    )
+    queryset = Correspondent.objects.select_related("owner").order_by(Lower("name"))
 
     serializer_class = CorrespondentSerializer
     pagination_class = StandardPagination
@@ -281,6 +275,19 @@ class CorrespondentViewSet(ModelViewSet, PermissionsAwareDocumentCountMixin):
         "document_count",
         "last_correspondence",
     )
+
+    def list(self, request, *args, **kwargs):
+        if request.query_params.get("last_correspondence", None):
+            self.queryset = self.queryset.annotate(
+                last_correspondence=Max("documents__created"),
+            )
+        return super().list(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        self.queryset = self.queryset.annotate(
+            last_correspondence=Max("documents__created"),
+        )
+        return super().retrieve(request, *args, **kwargs)
 
 
 class LegalEntityViewSet(ModelViewSet, PermissionsAwareDocumentCountMixin):
@@ -648,9 +655,12 @@ class DocumentViewSet(
             .order_by("-created")
         ]
 
-    @action(methods=["get", "post", "delete"], detail=True)
+    @action(
+        methods=["get", "post", "delete"],
+        detail=True,
+        permission_classes=[PaperlessNotePermissions],
+    )
     def notes(self, request, pk=None):
-
         currentUser = request.user
         try:
             doc = (
@@ -799,7 +809,9 @@ class DocumentViewSet(
         try:
             doc = Document.objects.get(pk=pk)
             if not request.user.has_perm("auditlog.view_logentry") or (
-                doc.owner is not None and doc.owner != request.user
+                doc.owner is not None
+                and doc.owner != request.user
+                and not request.user.is_superuser
             ):
                 return HttpResponseForbidden(
                     "Insufficient permissions",
@@ -985,15 +997,30 @@ class BulkEditView(PassUserMixin):
             document_objs = Document.objects.select_related("owner").filter(
                 pk__in=documents,
             )
+            user_is_owner_of_all_documents = all(
+                (doc.owner == user or doc.owner is None) for doc in document_objs
+            )
+
             has_perms = (
-                all((doc.owner == user or doc.owner is None) for doc in document_objs)
+                user_is_owner_of_all_documents
                 if method
-                in [bulk_edit.set_permissions, bulk_edit.delete, bulk_edit.rotate]
+                in [
+                    bulk_edit.set_permissions,
+                    bulk_edit.delete,
+                    bulk_edit.rotate,
+                ]
                 else all(
                     has_perms_owner_aware(user, "change_document", doc)
                     for doc in document_objs
                 )
             )
+
+            if (
+                method in [bulk_edit.merge, bulk_edit.split]
+                and parameters["delete_originals"]
+                and not user_is_owner_of_all_documents
+            ):
+                has_perms = False
 
             if not has_perms:
                 return HttpResponseForbidden("Insufficient permissions")
@@ -1206,7 +1233,7 @@ class GlobalSearchView(PassUserMixin):
                 Document,
             )
             # First search by title
-            docs = all_docs.filter(title__icontains=query)[:OBJECT_LIMIT]
+            docs = all_docs.filter(title__icontains=query)
             if not db_only and len(docs) < OBJECT_LIMIT:
                 # If we don't have enough results, search by content
                 from documents import index
@@ -1220,77 +1247,87 @@ class GlobalSearchView(PassUserMixin):
                     )._get_query()
                     results = s.search(q, limit=OBJECT_LIMIT)
                     docs = docs | all_docs.filter(id__in=[r["id"] for r in results])
+            docs = docs[:OBJECT_LIMIT]
         saved_views = (
-            SavedView.objects.filter(owner=request.user, name__icontains=query)[
-                :OBJECT_LIMIT
-            ]
+            SavedView.objects.filter(owner=request.user, name__icontains=query)
             if request.user.has_perm("documents.view_savedview")
             else []
         )
+        saved_views = saved_views[:OBJECT_LIMIT]
         tags = (
             get_objects_for_user_owner_aware(request.user, "view_tag", Tag).filter(
                 name__icontains=query,
-            )[:OBJECT_LIMIT]
+            )
             if request.user.has_perm("documents.view_tag")
             else []
         )
+        tags = tags[:OBJECT_LIMIT]
         correspondents = (
             get_objects_for_user_owner_aware(
                 request.user,
                 "view_correspondent",
                 Correspondent,
-            ).filter(name__icontains=query)[:OBJECT_LIMIT]
+            ).filter(name__icontains=query)
             if request.user.has_perm("documents.view_correspondent")
             else []
         )
+        correspondents = correspondents[:OBJECT_LIMIT]
         document_types = (
             get_objects_for_user_owner_aware(
                 request.user,
                 "view_documenttype",
                 DocumentType,
-            ).filter(name__icontains=query)[:OBJECT_LIMIT]
+            ).filter(name__icontains=query)
             if request.user.has_perm("documents.view_documenttype")
             else []
         )
+        document_types = document_types[:OBJECT_LIMIT]
         storage_paths = (
             get_objects_for_user_owner_aware(
                 request.user,
                 "view_storagepath",
                 StoragePath,
-            ).filter(name__icontains=query)[:OBJECT_LIMIT]
+            ).filter(name__icontains=query)
             if request.user.has_perm("documents.view_storagepath")
             else []
         )
+        storage_paths = storage_paths[:OBJECT_LIMIT]
         users = (
-            User.objects.filter(username__icontains=query)[:OBJECT_LIMIT]
+            User.objects.filter(username__icontains=query)
             if request.user.has_perm("auth.view_user")
             else []
         )
+        users = users[:OBJECT_LIMIT]
         groups = (
-            Group.objects.filter(name__icontains=query)[:OBJECT_LIMIT]
+            Group.objects.filter(name__icontains=query)
             if request.user.has_perm("auth.view_group")
             else []
         )
+        groups = groups[:OBJECT_LIMIT]
         mail_rules = (
-            MailRule.objects.filter(name__icontains=query)[:OBJECT_LIMIT]
+            MailRule.objects.filter(name__icontains=query)
             if request.user.has_perm("paperless_mail.view_mailrule")
             else []
         )
+        mail_rules = mail_rules[:OBJECT_LIMIT]
         mail_accounts = (
-            MailAccount.objects.filter(name__icontains=query)[:OBJECT_LIMIT]
+            MailAccount.objects.filter(name__icontains=query)
             if request.user.has_perm("paperless_mail.view_mailaccount")
             else []
         )
+        mail_accounts = mail_accounts[:OBJECT_LIMIT]
         workflows = (
-            Workflow.objects.filter(name__icontains=query)[:OBJECT_LIMIT]
+            Workflow.objects.filter(name__icontains=query)
             if request.user.has_perm("documents.view_workflow")
             else []
         )
+        workflows = workflows[:OBJECT_LIMIT]
         custom_fields = (
-            CustomField.objects.filter(name__icontains=query)[:OBJECT_LIMIT]
+            CustomField.objects.filter(name__icontains=query)
             if request.user.has_perm("documents.view_customfield")
             else []
         )
+        custom_fields = custom_fields[:OBJECT_LIMIT]
 
         context = {
             "request": request,
@@ -1371,7 +1408,6 @@ class StatisticsView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, format=None):
-
         user = request.user if request.user is not None else None
 
         documents = (
@@ -1425,7 +1461,9 @@ class StatisticsView(APIView):
         inbox_tag = tags.filter(is_inbox_tag=True)
 
         documents_inbox = (
-            documents.filter(tags__is_inbox_tag=True).distinct().count()
+            documents.filter(tags__is_inbox_tag=True, tags__id__in=tags)
+            .distinct()
+            .count()
             if inbox_tag.exists()
             else None
         )
@@ -1446,6 +1484,12 @@ class StatisticsView(APIView):
             .get("characters__sum")
         )
 
+        current_asn = Document.objects.aggregate(
+            Max("archive_serial_number", default=0),
+        ).get(
+            "archive_serial_number__max",
+        )
+
         return Response(
             {
                 "documents_total": documents_total,
@@ -1457,6 +1501,7 @@ class StatisticsView(APIView):
                 "correspondent_count": correspondent_count,
                 "document_type_count": document_type_count,
                 "storage_path_count": storage_path_count,
+                "current_asn": current_asn,
             },
         )
 
@@ -1558,9 +1603,9 @@ class UiSettingsView(GenericAPIView):
         if hasattr(user, "ui_settings"):
             ui_settings = user.ui_settings.settings
         if "update_checking" in ui_settings:
-            ui_settings["update_checking"][
-                "backend_setting"
-            ] = settings.ENABLE_UPDATE_CHECK
+            ui_settings["update_checking"]["backend_setting"] = (
+                settings.ENABLE_UPDATE_CHECK
+            )
         else:
             ui_settings["update_checking"] = {
                 "backend_setting": settings.ENABLE_UPDATE_CHECK,
@@ -1896,7 +1941,7 @@ class SystemStatusView(PassUserMixin):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, format=None):
-        if not request.user.has_perm("admin.view_logentry"):
+        if not request.user.is_staff:
             return HttpResponseForbidden("Insufficient permissions")
 
         current_version = version.__full_version_str__

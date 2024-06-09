@@ -107,7 +107,7 @@ import { CustomFieldsComponent } from './components/manage/custom-fields/custom-
 import { CustomFieldEditDialogComponent } from './components/common/edit-dialog/custom-field-edit-dialog/custom-field-edit-dialog.component'
 import { CustomFieldsDropdownComponent } from './components/common/custom-fields-dropdown/custom-fields-dropdown.component'
 import { ProfileEditDialogComponent } from './components/common/profile-edit-dialog/profile-edit-dialog.component'
-import { PdfViewerComponent } from './components/common/pdf-viewer/pdf-viewer.component'
+import { PdfViewerModule } from 'ng2-pdf-viewer'
 import { DocumentLinkComponent } from './components/common/input/document-link/document-link.component'
 import { PreviewPopupComponent } from './components/common/preview-popup/preview-popup.component'
 import { SwitchComponent } from './components/common/input/switch/switch.component'
@@ -126,6 +126,7 @@ import { DragDropSelectComponent } from './components/common/input/drag-drop-sel
 import { CustomFieldDisplayComponent } from './components/common/custom-field-display/custom-field-display.component'
 import { GlobalSearchComponent } from './components/app-frame/global-search/global-search.component'
 import { HotkeyDialogComponent } from './components/common/hotkey-dialog/hotkey-dialog.component'
+import { DeletePagesConfirmDialogComponent } from './components/common/confirm-dialog/delete-pages-confirm-dialog/delete-pages-confirm-dialog.component'
 import {
   airplane,
   alarm,
@@ -164,6 +165,7 @@ import {
   clipboardCheckFill,
   clipboardFill,
   dash,
+  dashCircle,
   diagram3,
   dice5,
   doorOpen,
@@ -178,6 +180,7 @@ import {
   fileEarmarkCheck,
   fileEarmarkFill,
   fileEarmarkLock,
+  fileEarmarkMinus,
   files,
   fileText,
   filter,
@@ -265,6 +268,7 @@ const icons = {
   clipboardCheckFill,
   clipboardFill,
   dash,
+  dashCircle,
   diagram3,
   dice5,
   doorOpen,
@@ -279,6 +283,7 @@ const icons = {
   fileEarmarkCheck,
   fileEarmarkFill,
   fileEarmarkLock,
+  fileEarmarkMinus,
   files,
   fileText,
   filter,
@@ -483,7 +488,6 @@ function initializeApp(settings: SettingsService) {
     CustomFieldEditDialogComponent,
     CustomFieldsDropdownComponent,
     ProfileEditDialogComponent,
-    PdfViewerComponent,
     DocumentLinkComponent,
     PreviewPopupComponent,
     SwitchComponent,
@@ -500,6 +504,7 @@ function initializeApp(settings: SettingsService) {
     CustomFieldDisplayComponent,
     GlobalSearchComponent,
     HotkeyDialogComponent,
+    DeletePagesConfirmDialogComponent,
   ],
   imports: [
     BrowserModule,
@@ -508,6 +513,7 @@ function initializeApp(settings: SettingsService) {
     HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
+    PdfViewerModule,
     NgxFileDropModule,
     NgSelectModule,
     ColorSliderModule,
