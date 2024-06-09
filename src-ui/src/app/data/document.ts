@@ -21,6 +21,7 @@ export enum DisplayField {
   TAGS = 'tag',
   CORRESPONDENT = 'correspondent',
   DOCUMENT_TYPE = 'documenttype',
+  DUE_DATE = 'due_date',
   LEGAL_ENTITY = 'legal_entity',
   STORAGE_PATH = 'storagepath',
   CUSTOM_FIELD = 'custom_field_',
@@ -74,6 +75,14 @@ export const DEFAULT_DISPLAY_FIELDS = [
   {
     id: DisplayField.ASN,
     name: $localize`ASN`,
+  },
+  {
+    id: DisplayField.LEGAL_ENTITY,
+    name: $localize`Legal entity`,
+  },
+  {
+    id: DisplayField.DUE_DATE,
+    name: $localize`Due date`,
   },
 ]
 
