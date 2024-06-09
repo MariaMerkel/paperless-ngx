@@ -37,7 +37,6 @@ from documents.models import CustomField
 from documents.models import CustomFieldInstance
 from documents.models import Document
 from documents.models import DocumentType
-from documents.models import LegalEntity
 from documents.models import Note
 from documents.models import SavedView
 from documents.models import SavedViewFilterRule
