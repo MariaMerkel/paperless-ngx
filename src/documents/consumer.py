@@ -834,9 +834,9 @@ class ConsumerPlugin(
             document.correspondent = Correspondent.objects.get(
                 pk=self.metadata.correspondent_id,
             )
-        if self.override_legal_entity_id:
+        if self.metadata.legal_entity_id:
             document.legal_entity = LegalEntity.objects.get(
-                pk=self.override_legal_entity_id,
+                pk=self.metadata.legal_entity_id,
             )
 
         if self.metadata.document_type_id:
