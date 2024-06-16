@@ -22,7 +22,7 @@ export enum DisplayField {
   CORRESPONDENT = 'correspondent',
   DOCUMENT_TYPE = 'documenttype',
   DUE_DATE = 'due_date',
-  LEGAL_ENTITY = 'legal_entity',
+  LEGAL_ENTITY = 'legalentity',
   STORAGE_PATH = 'storagepath',
   CUSTOM_FIELD = 'custom_field_',
   NOTES = 'note',

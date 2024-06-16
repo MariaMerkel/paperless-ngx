@@ -327,6 +327,7 @@ export class SettingsService {
             DisplayField.ADDED,
             DisplayField.ASN,
             DisplayField.SHARED,
+            DisplayField.DUE_DATE,
           ].includes(field.id)
         ) {
           return field
