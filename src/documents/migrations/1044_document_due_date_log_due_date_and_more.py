@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
             model_name="log",
             name="due_date",
             field=models.DateTimeField(
-                default=django.utils.timezone.now,
+                default=None,
                 null=True,
                 verbose_name="due_date",
             ),
