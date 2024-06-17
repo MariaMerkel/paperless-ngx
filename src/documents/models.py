@@ -445,6 +445,8 @@ class SavedView(ModelWithOwner):
         ADDED = ("added", _("Added"))
         TAGS = ("tag"), _("Tags")
         CORRESPONDENT = ("correspondent", _("Correspondent"))
+        LEGAL_ENTITY = ("legalentity", _("Legal entity"))
+        DUE_DATE = ("due_date", _("Due date"))
         DOCUMENT_TYPE = ("documenttype", _("Document Type"))
         STORAGE_PATH = ("storagepath", _("Storage Path"))
         NOTES = ("note", _("Note"))
