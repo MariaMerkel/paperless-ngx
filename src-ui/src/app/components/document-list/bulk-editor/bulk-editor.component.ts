@@ -37,6 +37,7 @@ import {
 import { FormControl, FormGroup } from '@angular/forms'
 import { first, map, Subject, switchMap, takeUntil } from 'rxjs'
 import { CorrespondentEditDialogComponent } from '../../common/edit-dialog/correspondent-edit-dialog/correspondent-edit-dialog.component'
+import { LegalEntityEditDialogComponent } from '../../common/edit-dialog/legalentity-edit-dialog/legalentity-edit-dialog.component'
 import { EditDialogMode } from '../../common/edit-dialog/edit-dialog.component'
 import { TagEditDialogComponent } from '../../common/edit-dialog/tag-edit-dialog/tag-edit-dialog.component'
 import { DocumentTypeEditDialogComponent } from '../../common/edit-dialog/document-type-edit-dialog/document-type-edit-dialog.component'
@@ -169,7 +170,7 @@ export class BulkEditorComponent
       this.legalEntityService
         .listAll()
         .pipe(first())
-        .subscribe((result) => (this.correspondents = result.results))
+        .subscribe((result) => (this.legalEntities = result.results))
     }
     if (
       this.permissionService.currentUserCan(
@@ -511,12 +512,12 @@ export class BulkEditorComponent
         .pipe(takeUntil(this.unsubscribeNotifier))
         .subscribe(() => {
           this.executeBulkOperation(modal, 'set_legal_entity', {
-            legalEntity: legalEntity ? legalEntity.id : null,
+            legal_entity: legalEntity ? legalEntity.id : null,
           })
         })
     } else {
       this.executeBulkOperation(null, 'set_legal_entity', {
-        legalEntity: legalEntity ? legalEntity.id : null,
+        legal_entity: legalEntity ? legalEntity.id : null,
       })
     }
   }
@@ -706,6 +707,29 @@ export class BulkEditorComponent
       .subscribe(({ newCorrespondent, correspondents }) => {
         this.correspondents = correspondents.results
         this.correspondentSelectionModel.toggle(newCorrespondent.id)
+      })
+  }
+
+  createLegalEntity(name: string) {
+    let modal = this.modalService.open(LegalEntityEditDialogComponent, {
+      backdrop: 'static',
+    })
+    modal.componentInstance.dialogMode = EditDialogMode.CREATE
+    modal.componentInstance.object = { name }
+    modal.componentInstance.succeeded
+      .pipe(
+        switchMap((newLegalEntity) => {
+          return this.legalEntityService
+            .listAll()
+            .pipe(
+              map((legalEntities) => ({ newLegalEntity, legalEntities }))
+            )
+        })
+      )
+      .pipe(takeUntil(this.unsubscribeNotifier))
+      .subscribe(({ newLegalEntity, legalEntities }) => {
+        this.legalEntities = legalEntities.results
+        this.legalEntitySelectionModel.toggle(newLegalEntity.id)
       })
   }
 

@@ -15,6 +15,7 @@ from documents.data_models import ConsumableDocument
 from documents.data_models import DocumentMetadataOverrides
 from documents.data_models import DocumentSource
 from documents.models import Correspondent
+from documents.models import LegalEntity
 from documents.models import CustomFieldInstance
 from documents.models import Document
 from documents.models import DocumentType
@@ -38,6 +39,22 @@ def set_correspondent(doc_ids: list[int], correspondent):
     )
     affected_docs = list(qs.values_list("pk", flat=True))
     qs.update(correspondent=correspondent)
+
+    bulk_update_documents.delay(document_ids=affected_docs)
+
+    return "OK"
+
+def set_legal_entity(doc_ids: list[int], legal_entity):
+    if legal_entity:
+        legal_entity = LegalEntity.objects.only("pk").get(id=legal_entity)
+
+    qs = (
+        Document.objects.filter(Q(id__in=doc_ids) & ~Q(legal_entity=legal_entity))
+        .select_related("legal_entity")
+        .only("pk", "legal_entity__id")
+    )
+    affected_docs = list(qs.values_list("pk", flat=True))
+    qs.update(legal_entity=legal_entity)
 
     bulk_update_documents.delay(document_ids=affected_docs)
 

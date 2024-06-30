@@ -51,14 +51,15 @@
           @if (permissionService.currentUserCan(PermissionAction.View, PermissionType.LegalEntity)) {
             <pngx-filterable-dropdown title="Legal entity" icon="person-fill" i18n-title
               filterPlaceholder="Filter legal entities" i18n-filterPlaceholder
-              [items]="legal_entities"
-              [disabled]="!userCanEditAll"
+              [items]="legalEntities"
+              [disabled]="!userCanEditAll || disabled"
               [editing]="true"
               [applyOnClose]="applyOnClose"
+              [createRef]="createLegalEntity.bind(this)"
               (opened)="openLegalEntityDropdown()"
               [(selectionModel)]="legalEntitySelectionModel"
               [documentCounts]="legalEntityDocumentCounts"
-              (apply)="setLegalEntity($event)">
+              (apply)="setLegalEntities($event)">
           </pngx-filterable-dropdown>
           }
           @if (permissionService.currentUserCan(PermissionAction.View, PermissionType.DocumentType)) {
