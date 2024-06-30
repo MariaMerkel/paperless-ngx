@@ -15,10 +15,10 @@ from documents.data_models import ConsumableDocument
 from documents.data_models import DocumentMetadataOverrides
 from documents.data_models import DocumentSource
 from documents.models import Correspondent
-from documents.models import LegalEntity
 from documents.models import CustomFieldInstance
 from documents.models import Document
 from documents.models import DocumentType
+from documents.models import LegalEntity
 from documents.models import StoragePath
 from documents.permissions import set_permissions_for_object
 from documents.tasks import bulk_update_documents
@@ -43,6 +43,7 @@ def set_correspondent(doc_ids: list[int], correspondent):
     bulk_update_documents.delay(document_ids=affected_docs)
 
     return "OK"
+
 
 def set_legal_entity(doc_ids: list[int], legal_entity):
     if legal_entity:
