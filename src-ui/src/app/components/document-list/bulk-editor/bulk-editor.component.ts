@@ -721,9 +721,7 @@ export class BulkEditorComponent
         switchMap((newLegalEntity) => {
           return this.legalEntityService
             .listAll()
-            .pipe(
-              map((legalEntities) => ({ newLegalEntity, legalEntities }))
-            )
+            .pipe(map((legalEntities) => ({ newLegalEntity, legalEntities })))
         })
       )
       .pipe(takeUntil(this.unsubscribeNotifier))
