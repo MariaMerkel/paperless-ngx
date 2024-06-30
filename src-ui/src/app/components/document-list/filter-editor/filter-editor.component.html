@@ -61,7 +61,7 @@
           shortcutKey="y"></pngx-filterable-dropdown>
         }
         @if (permissionsService.currentUserCan(PermissionAction.View, PermissionType.LegalEntity)) {
-          <pngx-filterable-dropdown class="flex-fill" title="Document type" icon="file-earmark-fill" i18n-title
+          <pngx-filterable-dropdown class="flex-fill" title="Legal entity" icon="buildings" i18n-title
           filterPlaceholder="Filter legal entities" i18n-filterPlaceholder
           [items]="legalEntities"
           [(selectionModel)]="legalEntitySelectionModel"
@@ -69,8 +69,7 @@
           (opened)="onLegalEntityDropdownOpen()"
           [documentCounts]="legalEntityDocumentCounts"
           [allowSelectNone]="true"
-          [disabled]="disabled"
-          shortcutKey="u"></pngx-filterable-dropdown>
+          [disabled]="disabled"></pngx-filterable-dropdown>
       }
         @if (permissionsService.currentUserCan(PermissionAction.View, PermissionType.DocumentType)) {
             <pngx-filterable-dropdown class="flex-fill" title="Document type" icon="file-earmark-fill" i18n-title
