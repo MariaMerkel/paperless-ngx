@@ -2,6 +2,7 @@ export enum DataType {
   Document = 'document',
   SavedView = 'saved_view',
   Correspondent = 'correspondent',
+  LegalEntity = 'legal_entity',
   DocumentType = 'document_type',
   StoragePath = 'storage_path',
   Tag = 'tag',

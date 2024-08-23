@@ -113,6 +113,13 @@
                     }
                 }
 
+                @if (searchResults?.legalentities.length) {
+                    <h6 class="dropdown-header" i18n="@@searchResults.correspondents">Correspondents</h6>
+                    @for (correspondent of searchResults.legalentities; track legal_entity.id) {
+                        <ng-container *ngTemplateOutlet="resultItemTemplate; context: {item: legal_entity, nameProp: 'name', type: DataType.LegalEntity, icon: 'person'}"></ng-container>
+                    }
+                }
+
                 @if (searchResults?.document_types.length) {
                     <h6 class="dropdown-header" i18n="@@searchResults.documentTypes">Document types</h6>
                     @for (documentType of searchResults.document_types; track documentType.id) {

@@ -37,6 +37,7 @@ from documents.views import StoragePathViewSet
 from documents.views import SystemStatusView
 from documents.views import TagViewSet
 from documents.views import TasksViewSet
+from documents.views import TrashView
 from documents.views import UiSettingsView
 from documents.views import UnifiedSearchViewSet
 from documents.views import WorkflowActionViewSet
@@ -160,6 +161,11 @@ urlpatterns = [
                     "^status/",
                     SystemStatusView.as_view(),
                     name="system_status",
+                ),
+                re_path(
+                    "^trash/",
+                    TrashView.as_view(),
+                    name="trash",
                 ),
                 *api_router.urls,
             ],

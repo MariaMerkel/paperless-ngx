@@ -12,6 +12,7 @@ import { Subject, debounceTime, distinctUntilChanged, filter, map } from 'rxjs'
 import {
   FILTER_FULLTEXT_QUERY,
   FILTER_HAS_CORRESPONDENT_ANY,
+  FILTER_HAS_LEGAL_ENTITY_ANY,
   FILTER_HAS_DOCUMENT_TYPE_ANY,
   FILTER_HAS_STORAGE_PATH_ANY,
   FILTER_HAS_TAGS_ALL,
@@ -31,6 +32,7 @@ import {
 } from 'src/app/services/rest/search.service'
 import { ToastService } from 'src/app/services/toast.service'
 import { CorrespondentEditDialogComponent } from '../../common/edit-dialog/correspondent-edit-dialog/correspondent-edit-dialog.component'
+import { LegalEntityEditDialogComponent } from '../../common/edit-dialog/legalentity-edit-dialog/legalentity-edit-dialog.component'
 import { CustomFieldEditDialogComponent } from '../../common/edit-dialog/custom-field-edit-dialog/custom-field-edit-dialog.component'
 import { DocumentTypeEditDialogComponent } from '../../common/edit-dialog/document-type-edit-dialog/document-type-edit-dialog.component'
 import { EditDialogMode } from '../../common/edit-dialog/edit-dialog.component'
@@ -136,6 +138,9 @@ export class GlobalSearchComponent implements OnInit {
       case DataType.Correspondent:
         filterRuleType = FILTER_HAS_CORRESPONDENT_ANY
         break
+      case DataType.LegalEntity:
+          filterRuleType = FILTER_HAS_LEGAL_ENTITY_ANY
+          break
       case DataType.DocumentType:
         filterRuleType = FILTER_HAS_DOCUMENT_TYPE_ANY
         break
@@ -209,6 +214,9 @@ export class GlobalSearchComponent implements OnInit {
       case DataType.Correspondent:
         editDialogComponent = CorrespondentEditDialogComponent
         break
+      case DataType.LegalEntity:
+          editDialogComponent = LegalEntityEditDialogComponent
+          break
       case DataType.DocumentType:
         editDialogComponent = DocumentTypeEditDialogComponent
         break
