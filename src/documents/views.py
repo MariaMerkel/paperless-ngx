@@ -997,6 +997,7 @@ class SavedViewViewSet(ModelViewSet, PassUserMixin):
 class BulkEditView(PassUserMixin):
     MODIFIED_FIELD_BY_METHOD = {
         "set_correspondent": "correspondent",
+        "set_legal_entity": "legal_entity",
         "set_document_type": "document_type",
         "set_storage_path": "storage_path",
         "add_tag": "tags",
@@ -1094,6 +1095,7 @@ class BulkEditView(PassUserMixin):
                     for obj in Document.objects.filter(pk__in=documents).values(
                         "pk",
                         "correspondent",
+                        "legal_entity",
                         "document_type",
                         "storage_path",
                         "tags",

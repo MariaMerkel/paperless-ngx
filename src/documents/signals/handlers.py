@@ -141,12 +141,13 @@ def set_legal_entity(
     sender,
     document: Document,
     logging_group=None,
-    classifier: Optional[DocumentClassifier] = None,
+    classifier: DocumentClassifier | None = None,
     replace=False,
     use_first=True,
     suggest=False,
     base_url=None,
-    color=False,
+    stdout=None,
+    style_func=None,
     **kwargs,
 ):
     if document.legal_entity and not replace:

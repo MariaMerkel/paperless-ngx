@@ -51,7 +51,10 @@ def set_correspondent(
     return "OK"
 
 
-def set_legal_entity(doc_ids: list[int], legal_entity):
+def set_legal_entity(
+    doc_ids: list[int],
+    legal_entity: LegalEntity,
+) -> Literal["OK"]:
     if legal_entity:
         legal_entity = LegalEntity.objects.only("pk").get(id=legal_entity)
 
