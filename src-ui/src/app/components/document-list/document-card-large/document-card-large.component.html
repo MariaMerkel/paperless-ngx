@@ -137,6 +137,14 @@
                   </div>
                 }
               }
+              @if (displayFields.includes(DisplayField.LEGAL_ENTITY) && document.legal_entity) {
+                @if (clickLegalEntity.observers.length ) {
+                  <div class="list-group-item bg-light text-dark p-1 border-0 d-flex align-items-center">
+                    <i-bs width=".9em" height=".9em" class="me-2 text-muted" name="buildings"></i-bs><small>{{(document.legal_entity$ | async)?.name}}</small>
+                  </div>
+                }
+                :
+              }
               @if (displayFields.includes(DisplayField.PAGE_COUNT) && document.page_count) {
                 <div class="list-group-item bg-light text-dark p-1 border-0 d-flex align-items-center">
                   <i-bs width=".9em" height=".9em" class="me-2 text-muted" name="files"></i-bs>

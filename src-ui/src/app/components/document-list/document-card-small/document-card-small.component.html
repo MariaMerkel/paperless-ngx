@@ -41,7 +41,9 @@
         @if (document) {
           @if (displayFields.includes(DisplayField.CORRESPONDENT) && document.correspondent) {
             <a title="Toggle correspondent filter" i18n-title (click)="clickCorrespondent.emit(document.correspondent);$event.stopPropagation()" class="fw-bold btn-link">{{(document.correspondent$ | async)?.name ?? privateName}}</a>
-            @if (displayFields.includes(DisplayField.TITLE)) {:}
+          }
+          @if (displayFields.includes(DisplayField.LEGAL_ENTITY) && document.legal_entity) {
+            <a title="Toggle legal entity filter" i18n-title (click)="clickLegalEntity.emit(document.legal_entity);$event.stopPropagation()" class="fw-bold btn-link">{{(document.legal_entity$ | async)?.name ?? privateName}}</a>
           }
           @if (displayFields.includes(DisplayField.TITLE)) {
             {{document.title | documentTitle}}
