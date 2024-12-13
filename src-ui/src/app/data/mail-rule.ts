@@ -46,6 +46,8 @@ export interface MailRule extends ObjectWithPermissions {
 
   order: number
 
+  enabled: boolean
+
   folder: string
 
   filter_from: string

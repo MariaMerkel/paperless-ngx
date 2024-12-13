@@ -2,23 +2,22 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  OnDestroy,
   OnInit,
   QueryList,
   ViewChildren,
 } from '@angular/core'
-import { FormGroup, FormControl, FormArray } from '@angular/forms'
+import { FormArray, FormControl, FormGroup } from '@angular/forms'
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap'
+import { takeUntil } from 'rxjs'
 import {
-  DATA_TYPE_LABELS,
   CustomField,
   CustomFieldDataType,
+  DATA_TYPE_LABELS,
 } from 'src/app/data/custom-field'
 import { CustomFieldsService } from 'src/app/services/rest/custom-fields.service'
 import { UserService } from 'src/app/services/rest/user.service'
 import { SettingsService } from 'src/app/services/settings.service'
 import { EditDialogComponent, EditDialogMode } from '../edit-dialog.component'
-import { Subject, takeUntil } from 'rxjs'
 
 @Component({
   selector: 'pngx-custom-field-edit-dialog',
@@ -27,14 +26,12 @@ import { Subject, takeUntil } from 'rxjs'
 })
 export class CustomFieldEditDialogComponent
   extends EditDialogComponent<CustomField>
-  implements OnInit, AfterViewInit, OnDestroy
+  implements OnInit, AfterViewInit
 {
   CustomFieldDataType = CustomFieldDataType
 
   @ViewChildren('selectOption')
   private selectOptionInputs: QueryList<ElementRef>
-
-  private unsubscribeNotifier: Subject<any> = new Subject()
 
   private get selectOptions(): FormArray {
     return (this.objectForm.controls.extra_data as FormGroup).controls
@@ -57,9 +54,16 @@ export class CustomFieldEditDialogComponent
     }
     if (this.object?.data_type === CustomFieldDataType.Select) {
       this.selectOptions.clear()
-      this.object.extra_data.select_options.forEach((option) =>
-        this.selectOptions.push(new FormControl(option))
-      )
+      this.object.extra_data.select_options
+        .filter((option) => option)
+        .forEach((option) =>
+          this.selectOptions.push(
+            new FormGroup({
+              label: new FormControl(option.label),
+              id: new FormControl(option.id),
+            })
+          )
+        )
     }
   }
 
@@ -67,13 +71,8 @@ export class CustomFieldEditDialogComponent
     this.selectOptionInputs.changes
       .pipe(takeUntil(this.unsubscribeNotifier))
       .subscribe(() => {
-        this.selectOptionInputs.last.nativeElement.focus()
+        this.selectOptionInputs.last?.nativeElement.focus()
       })
-  }
-
-  ngOnDestroy(): void {
-    this.unsubscribeNotifier.next(true)
-    this.unsubscribeNotifier.complete()
   }
 
   getCreateTitle() {
@@ -89,7 +88,7 @@ export class CustomFieldEditDialogComponent
       name: new FormControl(null),
       data_type: new FormControl(null),
       extra_data: new FormGroup({
-        select_options: new FormArray([new FormControl(null)]),
+        select_options: new FormArray([]),
         default_currency: new FormControl(null),
       }),
     })
@@ -104,7 +103,9 @@ export class CustomFieldEditDialogComponent
   }
 
   public addSelectOption() {
-    this.selectOptions.push(new FormControl(''))
+    this.selectOptions.push(
+      new FormGroup({ label: new FormControl(null), id: new FormControl(null) })
+    )
   }
 
   public removeSelectOption(index: number) {

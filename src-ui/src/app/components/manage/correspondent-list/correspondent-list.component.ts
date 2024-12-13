@@ -1,7 +1,7 @@
 import { Component } from '@angular/core'
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap'
-import { FILTER_HAS_CORRESPONDENT_ANY } from 'src/app/data/filter-rule-type'
 import { Correspondent } from 'src/app/data/correspondent'
+import { FILTER_HAS_CORRESPONDENT_ANY } from 'src/app/data/filter-rule-type'
 import { CustomDatePipe } from 'src/app/pipes/custom-date.pipe'
 import { DocumentListViewService } from 'src/app/services/document-list-view.service'
 import {
@@ -12,7 +12,6 @@ import { CorrespondentService } from 'src/app/services/rest/correspondent.servic
 import { ToastService } from 'src/app/services/toast.service'
 import { CorrespondentEditDialogComponent } from '../../common/edit-dialog/correspondent-edit-dialog/correspondent-edit-dialog.component'
 import { ManagementListComponent } from '../management-list/management-list.component'
-import { takeUntil } from 'rxjs'
 
 @Component({
   selector: 'pngx-correspondent-list',
@@ -52,7 +51,7 @@ export class CorrespondentListComponent extends ManagementListComponent<Correspo
                 date = new Date(
                   c.last_correspondence
                     ?.toString()
-                    .replace(/-(\d\d):\d\d:\d\d/gm, `-$1:00`)
+                    .replace(/([-+])(\d\d):\d\d:\d\d/gm, `$1$2:00`)
                 )
               }
               return this.datePipe.transform(date)
@@ -65,24 +64,7 @@ export class CorrespondentListComponent extends ManagementListComponent<Correspo
   }
 
   public reloadData(): void {
-    this.isLoading = true
-    this.clearSelection()
-    this.service
-      .listFiltered(
-        this.page,
-        null,
-        this.sortField,
-        this.sortReverse,
-        this._nameFilter,
-        true,
-        { last_correspondence: true }
-      )
-      .pipe(takeUntil(this.unsubscribeNotifier))
-      .subscribe((c) => {
-        this.data = c.results
-        this.collectionSize = c.count
-        this.isLoading = false
-      })
+    super.reloadData({ last_correspondence: true })
   }
 
   getDeleteMessage(object: Correspondent) {

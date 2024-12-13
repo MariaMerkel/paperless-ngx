@@ -1,10 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing'
+import { Tag } from 'src/app/data/tag'
+import { TagComponent } from '../../tag/tag.component'
 import {
   ToggleableDropdownButtonComponent,
   ToggleableItemState,
 } from './toggleable-dropdown-button.component'
-import { TagComponent } from '../../tag/tag.component'
-import { Tag } from 'src/app/data/tag'
 
 describe('ToggleableDropdownButtonComponent', () => {
   let component: ToggleableDropdownButtonComponent
@@ -58,7 +58,7 @@ describe('ToggleableDropdownButtonComponent', () => {
     let toggleResult
     component.state = ToggleableItemState.Selected
     component.exclude.subscribe(() => (excludeResult = true))
-    component.toggle.subscribe(() => (toggleResult = true))
+    component.toggled.subscribe(() => (toggleResult = true))
     const button = fixture.nativeElement.querySelector('button')
     button.dispatchEvent(new MouseEvent('click'))
     expect(excludeResult).toBeTruthy()
@@ -70,7 +70,7 @@ describe('ToggleableDropdownButtonComponent', () => {
     let toggleResult
     component.state = ToggleableItemState.Excluded
     component.exclude.subscribe(() => (excludeResult = true))
-    component.toggle.subscribe(() => (toggleResult = true))
+    component.toggled.subscribe(() => (toggleResult = true))
     const button = fixture.nativeElement.querySelector('button')
     button.dispatchEvent(new MouseEvent('click'))
     expect(excludeResult).toBeFalsy()

@@ -19,6 +19,8 @@ Options available to any installation of paperless:
     export. Therefore, incremental backups with `rsync` are entirely
     possible.
 
+    The exporter does not include API tokens and they will need to be re-generated after importing.
+
 !!! caution
 
     You cannot import the export generated with one version of paperless in
@@ -239,6 +241,7 @@ document_exporter target [-c] [-d] [-f] [-na] [-nt] [-p] [-sm] [-z]
 
 optional arguments:
 -c,  --compare-checksums
+-cj, --compare-json
 -d,  --delete
 -f,  --use-filename-format
 -na, --no-archive
@@ -248,6 +251,7 @@ optional arguments:
 -z,  --zip
 -zn, --zip-name
 --data-only
+--no-progress-bar
 --passphrase
 ```
 
@@ -266,7 +270,8 @@ only export changed and added files. Paperless determines whether a file
 has changed by inspecting the file attributes "date/time modified" and
 "size". If that does not work out for you, specify `-c` or
 `--compare-checksums` and paperless will attempt to compare file
-checksums instead. This is slower.
+checksums instead. This is slower. The manifest and metadata json files
+are always updated, unless `cj` or `--compare-json` is specified.
 
 Paperless will not remove any existing files in the export directory. If
 you want paperless to also remove files that do not belong to the
@@ -310,6 +315,10 @@ value set in `-zn` or `--zip-name`.
 If `--data-only` is provided, only the database will be exported. This option is intended
 to facilitate database upgrades without needing to clean documents and thumbnails from the media directory.
 
+If `--no-progress-bar` is provided, the progress bar will be hidden, rendering the
+exporter quiet. This option is useful for scripting scenarios, such as when using the
+exporter with `crontab`.
+
 If `--passphrase` is provided, it will be used to encrypt certain fields in the export. This value
 must be provided to import. If this value is lost, the export cannot be imported.
 
@@ -331,11 +340,12 @@ and the script does the rest of the work:
 document_importer source
 ```
 
-| Option         | Required | Default | Description                                                               |
-| -------------- | -------- | ------- | ------------------------------------------------------------------------- |
-| source         | Yes      | N/A     | The directory containing an export                                        |
-| `--data-only`  | No       | False   | If provided, only import data, do not import document files or thumbnails |
-| `--passphrase` | No       | N/A     | If your export was encrypted with a passphrase, must be provided          |
+| Option              | Required | Default | Description                                                               |
+| ------------------- | -------- | ------- | ------------------------------------------------------------------------- |
+| source              | Yes      | N/A     | The directory containing an export                                        |
+| `--no-progress-bar` | No       | False   | If provided, the progress bar will be hidden                              |
+| `--data-only`       | No       | False   | If provided, only import data, do not import document files or thumbnails |
+| `--passphrase`      | No       | N/A     | If your export was encrypted with a passphrase, must be provided          |
 
 When you use the provided docker compose script, put the export inside
 the `export` folder in your paperless source directory. Specify
@@ -614,3 +624,12 @@ document_fuzzy_match [--ratio] [--processes N]
     If providing the `--delete` option, it is highly recommended to have a backup.
     While every effort has been taken to ensure proper operation, there is always the
     chance of deletion of a file you want to keep.
+
+### Prune history (audit log) entries {#prune-history}
+
+If the audit log is enabled Paperless-ngx keeps an audit log of all changes made to documents. Functionality to automatically remove entries for deleted documents was added but
+entries created prior to this are not removed. This command allows you to prune the audit log of entries that are no longer needed.
+
+```shell
+prune_audit_logs
+```

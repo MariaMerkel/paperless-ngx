@@ -2,15 +2,16 @@ import {
   Component,
   EventEmitter,
   Input,
-  Output,
-  OnInit,
   OnDestroy,
+  OnInit,
+  Output,
 } from '@angular/core'
 import { NgbDateAdapter } from '@ng-bootstrap/ng-bootstrap'
 import { Subject, Subscription } from 'rxjs'
 import { debounceTime } from 'rxjs/operators'
 import { SettingsService } from 'src/app/services/settings.service'
 import { ISODateAdapter } from 'src/app/utils/ngb-iso-date-adapter'
+import { popperOptionsReenablePreventOverflow } from 'src/app/utils/popper-options'
 
 export interface DateSelection {
   createdBefore?: string
@@ -35,6 +36,8 @@ export enum RelativeDate {
   providers: [{ provide: NgbDateAdapter, useClass: ISODateAdapter }],
 })
 export class DatesDropdownComponent implements OnInit, OnDestroy {
+  public popperOptions = popperOptionsReenablePreventOverflow
+
   constructor(settings: SettingsService) {
     this.datePlaceHolder = settings.getLocalizedDateInputFormat()
   }

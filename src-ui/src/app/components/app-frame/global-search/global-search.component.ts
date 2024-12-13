@@ -1,14 +1,15 @@
 import {
   Component,
-  ViewChild,
   ElementRef,
-  ViewChildren,
-  QueryList,
   OnInit,
+  QueryList,
+  ViewChild,
+  ViewChildren,
 } from '@angular/core'
 import { Router } from '@angular/router'
 import { NgbDropdown, NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap'
 import { Subject, debounceTime, distinctUntilChanged, filter, map } from 'rxjs'
+import { DataType } from 'src/app/data/datatype'
 import {
   FILTER_FULLTEXT_QUERY,
   FILTER_HAS_CORRESPONDENT_ANY,
@@ -18,19 +19,22 @@ import {
   FILTER_HAS_TAGS_ALL,
   FILTER_TITLE_CONTENT,
 } from 'src/app/data/filter-rule-type'
-import { DataType } from 'src/app/data/datatype'
 import { ObjectWithId } from 'src/app/data/object-with-id'
+import { GlobalSearchType, SETTINGS_KEYS } from 'src/app/data/ui-settings'
 import { DocumentListViewService } from 'src/app/services/document-list-view.service'
+import { HotKeyService } from 'src/app/services/hot-key.service'
 import {
-  PermissionsService,
   PermissionAction,
+  PermissionsService,
 } from 'src/app/services/permissions.service'
 import { DocumentService } from 'src/app/services/rest/document.service'
 import {
   GlobalSearchResult,
   SearchService,
 } from 'src/app/services/rest/search.service'
+import { SettingsService } from 'src/app/services/settings.service'
 import { ToastService } from 'src/app/services/toast.service'
+import { paramsFromViewState } from 'src/app/utils/query-params'
 import { CorrespondentEditDialogComponent } from '../../common/edit-dialog/correspondent-edit-dialog/correspondent-edit-dialog.component'
 import { LegalEntityEditDialogComponent } from '../../common/edit-dialog/legalentity-edit-dialog/legalentity-edit-dialog.component'
 import { CustomFieldEditDialogComponent } from '../../common/edit-dialog/custom-field-edit-dialog/custom-field-edit-dialog.component'
@@ -43,10 +47,6 @@ import { StoragePathEditDialogComponent } from '../../common/edit-dialog/storage
 import { TagEditDialogComponent } from '../../common/edit-dialog/tag-edit-dialog/tag-edit-dialog.component'
 import { UserEditDialogComponent } from '../../common/edit-dialog/user-edit-dialog/user-edit-dialog.component'
 import { WorkflowEditDialogComponent } from '../../common/edit-dialog/workflow-edit-dialog/workflow-edit-dialog.component'
-import { HotKeyService } from 'src/app/services/hot-key.service'
-import { paramsFromViewState } from 'src/app/utils/query-params'
-import { SettingsService } from 'src/app/services/settings.service'
-import { GlobalSearchType, SETTINGS_KEYS } from 'src/app/data/ui-settings'
 
 @Component({
   selector: 'pngx-global-search',

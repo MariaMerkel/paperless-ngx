@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core'
+import { HttpClient } from '@angular/common/http'
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core'
 import { FormArray, FormControl, FormGroup } from '@angular/forms'
 import { ActivatedRoute, Router } from '@angular/router'
 import {
@@ -7,38 +8,29 @@ import {
   NgbNav,
   NgbNavChangeEvent,
 } from '@ng-bootstrap/ng-bootstrap'
-import { Correspondent } from 'src/app/data/correspondent'
-import { Document } from 'src/app/data/document'
-import { DocumentMetadata } from 'src/app/data/document-metadata'
-import { DocumentType } from 'src/app/data/document-type'
-import { Tag } from 'src/app/data/tag'
-import { DocumentTitlePipe } from 'src/app/pipes/document-title.pipe'
-import { DocumentListViewService } from 'src/app/services/document-list-view.service'
-import { OpenDocumentsService } from 'src/app/services/open-documents.service'
-import { CorrespondentService } from 'src/app/services/rest/correspondent.service'
-import { DocumentTypeService } from 'src/app/services/rest/document-type.service'
-import { LegalEntity } from 'src/app/data/legalentity'
-import { LegalEntityService } from 'src/app/services/rest/legalentity.service'
-import { LegalEntityEditDialogComponent } from '../common/edit-dialog/legalentity-edit-dialog/legalentity-edit-dialog.component'
-import { DocumentService } from 'src/app/services/rest/document.service'
-import { ConfirmDialogComponent } from '../common/confirm-dialog/confirm-dialog.component'
-import { CorrespondentEditDialogComponent } from '../common/edit-dialog/correspondent-edit-dialog/correspondent-edit-dialog.component'
-import { DocumentTypeEditDialogComponent } from '../common/edit-dialog/document-type-edit-dialog/document-type-edit-dialog.component'
-import { ToastService } from 'src/app/services/toast.service'
-import { TextComponent } from '../common/input/text/text.component'
-import { SettingsService } from 'src/app/services/settings.service'
 import { dirtyCheck, DirtyComponent } from '@ngneat/dirty-check-forms'
-import { Observable, Subject, BehaviorSubject } from 'rxjs'
+import { PDFDocumentProxy } from 'ng2-pdf-viewer'
+import { BehaviorSubject, Observable, Subject } from 'rxjs'
 import {
-  first,
-  takeUntil,
-  switchMap,
-  map,
   debounceTime,
   distinctUntilChanged,
   filter,
+  first,
+  map,
+  switchMap,
+  takeUntil,
 } from 'rxjs/operators'
+import { Correspondent } from 'src/app/data/correspondent'
+import { LegalEntity } from 'src/app/data/legalentity'
+import { CustomField, CustomFieldDataType } from 'src/app/data/custom-field'
+import { CustomFieldInstance } from 'src/app/data/custom-field-instance'
+import { DataType } from 'src/app/data/datatype'
+import { Document } from 'src/app/data/document'
+import { DocumentMetadata } from 'src/app/data/document-metadata'
+import { DocumentNote } from 'src/app/data/document-note'
 import { DocumentSuggestions } from 'src/app/data/document-suggestions'
+import { DocumentType } from 'src/app/data/document-type'
+import { FilterRule } from 'src/app/data/filter-rule'
 import {
   FILTER_CORRESPONDENT,
   FILTER_CREATED_AFTER,
@@ -49,33 +41,42 @@ import {
   FILTER_HAS_TAGS_ALL,
   FILTER_STORAGE_PATH,
 } from 'src/app/data/filter-rule-type'
-import { StoragePathService } from 'src/app/services/rest/storage-path.service'
+import { ObjectWithId } from 'src/app/data/object-with-id'
 import { StoragePath } from 'src/app/data/storage-path'
-import { StoragePathEditDialogComponent } from '../common/edit-dialog/storage-path-edit-dialog/storage-path-edit-dialog.component'
+import { Tag } from 'src/app/data/tag'
 import { SETTINGS_KEYS } from 'src/app/data/ui-settings'
+import { User } from 'src/app/data/user'
+import { DocumentTitlePipe } from 'src/app/pipes/document-title.pipe'
+import { DocumentListViewService } from 'src/app/services/document-list-view.service'
+import { HotKeyService } from 'src/app/services/hot-key.service'
+import { OpenDocumentsService } from 'src/app/services/open-documents.service'
 import {
   PermissionAction,
   PermissionsService,
   PermissionType,
 } from 'src/app/services/permissions.service'
-import { User } from 'src/app/data/user'
-import { UserService } from 'src/app/services/rest/user.service'
-import { DocumentNote } from 'src/app/data/document-note'
-import { HttpClient } from '@angular/common/http'
-import { ComponentWithPermissions } from '../with-permissions/with-permissions.component'
-import { EditDialogMode } from '../common/edit-dialog/edit-dialog.component'
-import { ObjectWithId } from 'src/app/data/object-with-id'
-import { FilterRule } from 'src/app/data/filter-rule'
-import { ISODateAdapter } from 'src/app/utils/ngb-iso-date-adapter'
-import { CustomField, CustomFieldDataType } from 'src/app/data/custom-field'
-import { CustomFieldInstance } from 'src/app/data/custom-field-instance'
+import { CorrespondentService } from 'src/app/services/rest/correspondent.service'
+import { LegalEntityService } from 'src/app/services/rest/legalentity.service'
 import { CustomFieldsService } from 'src/app/services/rest/custom-fields.service'
-import { SplitConfirmDialogComponent } from '../common/confirm-dialog/split-confirm-dialog/split-confirm-dialog.component'
-import { RotateConfirmDialogComponent } from '../common/confirm-dialog/rotate-confirm-dialog/rotate-confirm-dialog.component'
+import { DocumentTypeService } from 'src/app/services/rest/document-type.service'
+import { DocumentService } from 'src/app/services/rest/document.service'
+import { StoragePathService } from 'src/app/services/rest/storage-path.service'
+import { UserService } from 'src/app/services/rest/user.service'
+import { SettingsService } from 'src/app/services/settings.service'
+import { ToastService } from 'src/app/services/toast.service'
+import { ISODateAdapter } from 'src/app/utils/ngb-iso-date-adapter'
+import * as UTIF from 'utif'
+import { ConfirmDialogComponent } from '../common/confirm-dialog/confirm-dialog.component'
 import { DeletePagesConfirmDialogComponent } from '../common/confirm-dialog/delete-pages-confirm-dialog/delete-pages-confirm-dialog.component'
-import { HotKeyService } from 'src/app/services/hot-key.service'
-import { PDFDocumentProxy } from 'ng2-pdf-viewer'
-import { DataType } from 'src/app/data/datatype'
+import { RotateConfirmDialogComponent } from '../common/confirm-dialog/rotate-confirm-dialog/rotate-confirm-dialog.component'
+import { SplitConfirmDialogComponent } from '../common/confirm-dialog/split-confirm-dialog/split-confirm-dialog.component'
+import { CorrespondentEditDialogComponent } from '../common/edit-dialog/correspondent-edit-dialog/correspondent-edit-dialog.component'
+import { LegalEntityEditDialogComponent } from '../common/edit-dialog/legalentity-edit-dialog/legalentity-edit-dialog.component'
+import { DocumentTypeEditDialogComponent } from '../common/edit-dialog/document-type-edit-dialog/document-type-edit-dialog.component'
+import { EditDialogMode } from '../common/edit-dialog/edit-dialog.component'
+import { StoragePathEditDialogComponent } from '../common/edit-dialog/storage-path-edit-dialog/storage-path-edit-dialog.component'
+import { TextComponent } from '../common/input/text/text.component'
+import { ComponentWithPermissions } from '../with-permissions/with-permissions.component'
 
 enum DocumentDetailNavIDs {
   Details = 1,
@@ -93,6 +94,7 @@ enum ContentRenderType {
   Text = 'text',
   Other = 'other',
   Unknown = 'unknown',
+  TIFF = 'tiff',
 }
 
 enum ZoomSetting {
@@ -135,9 +137,13 @@ export class DocumentDetailComponent
   title: string
   titleSubject: Subject<string> = new Subject()
   previewUrl: string
+  thumbUrl: string
   previewText: string
   downloadUrl: string
   downloadOriginalUrl: string
+  previewLoaded: boolean = false
+  tiffURL: string
+  tiffError: string
 
   correspondents: Correspondent[]
   legal_entities: LegalEntity[]
@@ -229,15 +235,17 @@ export class DocumentDetailComponent
   }
 
   get archiveContentRenderType(): ContentRenderType {
-    return this.getRenderType(
-      this.metadata?.has_archive_version
-        ? 'application/pdf'
-        : this.metadata?.original_mime_type
-    )
+    return this.document?.archived_file_name
+      ? this.getRenderType('application/pdf')
+      : this.getRenderType(this.document?.mime_type)
   }
 
   get originalContentRenderType(): ContentRenderType {
-    return this.getRenderType(this.metadata?.original_mime_type)
+    return this.getRenderType(this.document?.mime_type)
+  }
+
+  get showThumbnailOverlay(): boolean {
+    return this.settings.get(SETTINGS_KEYS.DOCUMENT_EDITING_OVERLAY_THUMBNAIL)
   }
 
   private getRenderType(mimeType: string): ContentRenderType {
@@ -248,6 +256,8 @@ export class DocumentDetailComponent
       ['text/plain', 'application/csv', 'text/csv'].includes(mimeType)
     ) {
       return ContentRenderType.Text
+    } else if (mimeType.indexOf('tiff') >= 0) {
+      return ContentRenderType.TIFF
     } else if (mimeType?.indexOf('image/') === 0) {
       return ContentRenderType.Image
     }
@@ -346,13 +356,8 @@ export class DocumentDetailComponent
         switchMap((paramMap) => {
           const documentId = +paramMap.get('id')
           this.docChangeNotifier.next(documentId)
-          return this.documentsService.get(documentId)
-        })
-      )
-      .pipe(
-        switchMap((doc) => {
-          this.documentId = doc.id
-          this.previewUrl = this.documentsService.getPreviewUrl(this.documentId)
+          // Dont wait to get the preview
+          this.previewUrl = this.documentsService.getPreviewUrl(documentId)
           this.http.get(this.previewUrl, { responseType: 'text' }).subscribe({
             next: (res) => {
               this.previewText = res.toString()
@@ -363,6 +368,13 @@ export class DocumentDetailComponent
               }`
             },
           })
+          this.thumbUrl = this.documentsService.getThumbUrl(documentId)
+          return this.documentsService.get(documentId)
+        })
+      )
+      .pipe(
+        switchMap((doc) => {
+          this.documentId = doc.id
           this.downloadUrl = this.documentsService.getDownloadUrl(
             this.documentId
           )
@@ -524,6 +536,16 @@ export class DocumentDetailComponent
       .subscribe(() => {
         if (this.openDocumentService.isDirty(this.document)) this.save()
       })
+
+    this.hotKeyService
+      .addShortcut({
+        keys: 'control.shift.s',
+        description: $localize`Save and close / next`,
+      })
+      .pipe(takeUntil(this.unsubscribeNotifier))
+      .subscribe(() => {
+        if (this.openDocumentService.isDirty(this.document)) this.saveEditNext()
+      })
   }
 
   ngOnDestroy(): void {
@@ -547,6 +569,9 @@ export class DocumentDetailComponent
     this.document = doc
     this.requiresPassword = false
     this.updateFormForCustomFields()
+    if (this.archiveContentRenderType === ContentRenderType.TIFF) {
+      this.tryRenderTiff()
+    }
     this.documentsService
       .getMetadata(doc.id)
       .pipe(
@@ -557,6 +582,9 @@ export class DocumentDetailComponent
       .subscribe({
         next: (result) => {
           this.metadata = result
+          if (this.archiveContentRenderType !== ContentRenderType.PDF) {
+            this.previewLoaded = true
+          }
         },
         error: (error) => {
           this.metadata = {} // allow display to fallback to <object> tag
@@ -570,6 +598,10 @@ export class DocumentDetailComponent
       this.permissionsService.currentUserHasObjectPermissions(
         PermissionAction.Change,
         doc
+      ) &&
+      this.permissionsService.currentUserCan(
+        PermissionAction.Change,
+        PermissionType.Document
       )
     ) {
       this.documentsService
@@ -749,6 +781,7 @@ export class DocumentDetailComponent
 
   save(close: boolean = false) {
     this.networkActive = true
+    ;(document.activeElement as HTMLElement)?.dispatchEvent(new Event('change'))
     this.documentsService
       .update(this.document)
       .pipe(first())
@@ -756,7 +789,10 @@ export class DocumentDetailComponent
         next: (docValues) => {
           // in case data changed while saving eg removing inbox_tags
           this.documentForm.patchValue(docValues)
-          this.store.next(this.documentForm.value)
+          const newValues = Object.assign({}, this.documentForm.value)
+          newValues.tags = [...docValues.tags]
+          newValues.custom_fields = [...docValues.custom_fields]
+          this.store.next(newValues)
           this.openDocumentService.setDirty(this.document, false)
           this.openDocumentService.save()
           this.toastService.showInfo($localize`Document saved successfully.`)
@@ -946,11 +982,15 @@ export class DocumentDetailComponent
   pdfPreviewLoaded(pdf: PDFDocumentProxy) {
     this.previewNumPages = pdf.numPages
     if (this.password) this.requiresPassword = false
+    setTimeout(() => {
+      this.previewLoaded = true
+    }, 300)
   }
 
   onError(event) {
     if (event.name == 'PasswordException') {
       this.requiresPassword = true
+      this.previewLoaded = true
     }
   }
 
@@ -1066,10 +1106,21 @@ export class DocumentDetailComponent
     }
     return (
       !this.document ||
-      this.permissionsService.currentUserHasObjectPermissions(
+      (this.permissionsService.currentUserCan(
         PermissionAction.Change,
-        doc
-      )
+        PermissionType.Document
+      ) &&
+        this.permissionsService.currentUserHasObjectPermissions(
+          PermissionAction.Change,
+          doc
+        ))
+    )
+  }
+
+  get userCanAdd(): boolean {
+    return this.permissionsService.currentUserCan(
+      PermissionAction.Add,
+      PermissionType.Document
     )
   }
 
@@ -1185,6 +1236,7 @@ export class DocumentDetailComponent
   splitDocument() {
     let modal = this.modalService.open(SplitConfirmDialogComponent, {
       backdrop: 'static',
+      size: 'lg',
     })
     modal.componentInstance.title = $localize`Split confirm`
     modal.componentInstance.messageBold = $localize`This operation will split the selected document(s) into new documents.`
@@ -1223,6 +1275,7 @@ export class DocumentDetailComponent
   rotateDocument() {
     let modal = this.modalService.open(RotateConfirmDialogComponent, {
       backdrop: 'static',
+      size: 'lg',
     })
     modal.componentInstance.title = $localize`Rotate confirm`
     modal.componentInstance.messageBold = $localize`This operation will permanently rotate the original version of the current document.`
@@ -1296,5 +1349,46 @@ export class DocumentDetailComponent
             },
           })
       })
+  }
+
+  private tryRenderTiff() {
+    this.http.get(this.previewUrl, { responseType: 'arraybuffer' }).subscribe({
+      next: (res) => {
+        /* istanbul ignore next */
+        try {
+          // See UTIF.js > _imgLoaded
+          const tiffIfds: any[] = UTIF.decode(res)
+          var vsns = tiffIfds,
+            ma = 0,
+            page = vsns[0]
+          if (tiffIfds[0].subIFD) vsns = vsns.concat(tiffIfds[0].subIFD)
+          for (var i = 0; i < vsns.length; i++) {
+            var img = vsns[i]
+            if (img['t258'] == null || img['t258'].length < 3) continue
+            var ar = img['t256'] * img['t257']
+            if (ar > ma) {
+              ma = ar
+              page = img
+            }
+          }
+          UTIF.decodeImage(res, page, tiffIfds)
+          const rgba = UTIF.toRGBA8(page)
+          const { width: w, height: h } = page
+          var cnv = document.createElement('canvas')
+          cnv.width = w
+          cnv.height = h
+          var ctx = cnv.getContext('2d'),
+            imgd = ctx.createImageData(w, h)
+          for (var i = 0; i < rgba.length; i++) imgd.data[i] = rgba[i]
+          ctx.putImageData(imgd, 0, 0)
+          this.tiffURL = cnv.toDataURL()
+        } catch (err) {
+          this.tiffError = $localize`An error occurred loading tiff: ${err.toString()}`
+        }
+      },
+      error: (err) => {
+        this.tiffError = $localize`An error occurred loading tiff: ${err.toString()}`
+      },
+    })
   }
 }

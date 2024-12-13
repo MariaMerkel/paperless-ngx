@@ -1,10 +1,10 @@
+import { DragDropModule } from '@angular/cdk/drag-drop'
 import { Component } from '@angular/core'
 import { ComponentFixture, TestBed } from '@angular/core/testing'
 import { By } from '@angular/platform-browser'
 import { NgbAlertModule } from '@ng-bootstrap/ng-bootstrap'
 import { PermissionsGuard } from 'src/app/guards/permissions.guard'
 import { WidgetFrameComponent } from './widget-frame.component'
-import { DragDropModule } from '@angular/cdk/drag-drop'
 
 @Component({
   template: `
@@ -12,7 +12,7 @@ import { DragDropModule } from '@angular/cdk/drag-drop'
       <button
         *pngxIfObjectPermissions="{
           object: { id: 2, owner: user1 },
-          action: 'view'
+          action: 'view',
         }"
       >
         Some Text
@@ -35,6 +35,7 @@ describe('WidgetFrameComponent', () => {
 
     fixture = TestBed.createComponent(WidgetFrameComponent)
     component = fixture.componentInstance
+    jest.useFakeTimers()
 
     fixture.detectChanges()
   })
@@ -50,5 +51,11 @@ describe('WidgetFrameComponent', () => {
     component.loading = true
     fixture.detectChanges()
     expect(fixture.debugElement.query(By.css('.spinner-border'))).not.toBeNull()
+  })
+
+  it('should show', () => {
+    expect(component.show).toBeFalsy()
+    jest.advanceTimersByTime(100)
+    expect(component.show).toBeTruthy()
   })
 })

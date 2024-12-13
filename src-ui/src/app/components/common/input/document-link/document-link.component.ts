@@ -1,19 +1,19 @@
-import { Component, forwardRef, OnInit, Input, OnDestroy } from '@angular/core'
+import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core'
 import { NG_VALUE_ACCESSOR } from '@angular/forms'
 import {
-  Subject,
-  Observable,
-  takeUntil,
-  concat,
-  of,
-  distinctUntilChanged,
-  tap,
-  switchMap,
-  map,
   catchError,
+  concat,
+  distinctUntilChanged,
+  map,
+  Observable,
+  of,
+  Subject,
+  switchMap,
+  takeUntil,
+  tap,
 } from 'rxjs'
-import { FILTER_TITLE } from 'src/app/data/filter-rule-type'
 import { Document } from 'src/app/data/document'
+import { FILTER_TITLE } from 'src/app/data/filter-rule-type'
 import { DocumentService } from 'src/app/services/rest/document.service'
 import { AbstractInputComponent } from '../abstract-input'
 
@@ -45,6 +45,12 @@ export class DocumentLinkComponent
 
   @Input()
   parentDocumentID: number
+
+  @Input()
+  minimal: boolean = false
+
+  @Input()
+  placeholder: string = $localize`Search for documents`
 
   constructor(private documentsService: DocumentService) {
     super()
@@ -108,7 +114,7 @@ export class DocumentLinkComponent
 
   unselect(document: Document): void {
     this.selectedDocuments = this.selectedDocuments.filter(
-      (d) => d.id !== document.id
+      (d) => d && d.id !== document.id
     )
     this.onChange(this.selectedDocuments.map((d) => d.id))
   }

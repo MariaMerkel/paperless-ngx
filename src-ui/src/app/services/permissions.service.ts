@@ -57,6 +57,10 @@ export class PermissionsService {
     return this.currentUser?.is_staff
   }
 
+  public isSuperUser(): boolean {
+    return this.currentUser?.is_superuser
+  }
+
   public currentUserOwnsObject(object: ObjectWithPermissions): boolean {
     return (
       !object ||

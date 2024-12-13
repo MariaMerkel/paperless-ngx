@@ -1,30 +1,30 @@
-import { TestBed } from '@angular/core/testing'
-import { DocumentListViewService } from './document-list-view.service'
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
 import {
   HttpTestingController,
   provideHttpClientTesting,
 } from '@angular/common/http/testing'
-import { environment } from 'src/environments/environment'
-import { Subscription } from 'rxjs'
-import { ConfirmDialogComponent } from '../components/common/confirm-dialog/confirm-dialog.component'
+import { TestBed } from '@angular/core/testing'
 import { Params, Router, convertToParamMap } from '@angular/router'
+import { RouterTestingModule } from '@angular/router/testing'
+import { Subscription } from 'rxjs'
+import { routes } from 'src/app/app-routing.module'
+import { environment } from 'src/environments/environment'
+import { ConfirmDialogComponent } from '../components/common/confirm-dialog/confirm-dialog.component'
+import {
+  DEFAULT_DISPLAY_FIELDS,
+  DisplayField,
+  DisplayMode,
+} from '../data/document'
+import { FilterRule } from '../data/filter-rule'
 import {
   FILTER_HAS_TAGS_ALL,
   FILTER_HAS_TAGS_ANY,
 } from '../data/filter-rule-type'
 import { SavedView } from '../data/saved-view'
-import { FilterRule } from '../data/filter-rule'
-import { RouterTestingModule } from '@angular/router/testing'
-import { routes } from 'src/app/app-routing.module'
-import { PermissionsGuard } from '../guards/permissions.guard'
-import { SettingsService } from './settings.service'
 import { SETTINGS_KEYS } from '../data/ui-settings'
-import {
-  DisplayMode,
-  DisplayField,
-  DEFAULT_DISPLAY_FIELDS,
-} from '../data/document'
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
+import { PermissionsGuard } from '../guards/permissions.guard'
+import { DocumentListViewService } from './document-list-view.service'
+import { SettingsService } from './settings.service'
 
 const documents = [
   {
@@ -599,14 +599,17 @@ describe('DocumentListViewService', () => {
   it('should not filter out custom fields if settings not initialized', () => {
     const customFields = ['custom_field_1', 'custom_field_2']
     documentListViewService.displayFields = customFields as any
-    settingsService.displayFieldsInitialized = false
     expect(documentListViewService.displayFields).toEqual(customFields)
     jest.spyOn(settingsService, 'allDisplayFields', 'get').mockReturnValue([
       { id: DisplayField.ADDED, name: 'Added' },
       { id: DisplayField.TITLE, name: 'Title' },
       { id: 'custom_field_1', name: 'Custom Field 1' },
     ] as any)
-    settingsService.displayFieldsInitialized = true
+    settingsService.displayFieldsInit.emit(true)
+    expect(documentListViewService.displayFields).toEqual(['custom_field_1'])
+
+    // will now filter on set
+    documentListViewService.displayFields = customFields as any
     expect(documentListViewService.displayFields).toEqual(['custom_field_1'])
   })
 })

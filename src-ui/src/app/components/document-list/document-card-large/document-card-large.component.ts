@@ -1,4 +1,5 @@
 import {
+  AfterViewInit,
   Component,
   EventEmitter,
   Input,
@@ -10,18 +11,21 @@ import {
   DisplayField,
   Document,
 } from 'src/app/data/document'
+import { SETTINGS_KEYS } from 'src/app/data/ui-settings'
 import { DocumentService } from 'src/app/services/rest/document.service'
 import { SettingsService } from 'src/app/services/settings.service'
-import { NgbPopover } from '@ng-bootstrap/ng-bootstrap'
-import { SETTINGS_KEYS } from 'src/app/data/ui-settings'
-import { ComponentWithPermissions } from '../../with-permissions/with-permissions.component'
+import { PreviewPopupComponent } from '../../common/preview-popup/preview-popup.component'
+import { LoadingComponentWithPermissions } from '../../loading-component/loading.component'
 
 @Component({
   selector: 'pngx-document-card-large',
   templateUrl: './document-card-large.component.html',
   styleUrls: ['./document-card-large.component.scss'],
 })
-export class DocumentCardLargeComponent extends ComponentWithPermissions {
+export class DocumentCardLargeComponent
+  extends LoadingComponentWithPermissions
+  implements AfterViewInit
+{
   DisplayField = DisplayField
 
   constructor(
@@ -68,10 +72,16 @@ export class DocumentCardLargeComponent extends ComponentWithPermissions {
   @Output()
   clickMoreLike = new EventEmitter()
 
-  @ViewChild('popover') popover: NgbPopover
+  @ViewChild('popupPreview') popupPreview: PreviewPopupComponent
 
   mouseOnPreview = false
   popoverHidden = true
+
+  ngAfterViewInit(): void {
+    setInterval(() => {
+      this.show = true
+    }, 100)
+  }
 
   get searchScoreClass() {
     if (this.document.__search_hit__) {
@@ -111,33 +121,8 @@ export class DocumentCardLargeComponent extends ComponentWithPermissions {
     return this.documentService.getDownloadUrl(this.document.id)
   }
 
-  get previewUrl() {
-    return this.documentService.getPreviewUrl(this.document.id)
-  }
-
-  mouseEnterPreview() {
-    this.mouseOnPreview = true
-    if (!this.popover.isOpen()) {
-      // we're going to open but hide to pre-load content during hover delay
-      this.popover.open()
-      this.popoverHidden = true
-      setTimeout(() => {
-        if (this.mouseOnPreview) {
-          // show popover
-          this.popoverHidden = false
-        } else {
-          this.popover.close()
-        }
-      }, 600)
-    }
-  }
-
-  mouseLeavePreview() {
-    this.mouseOnPreview = false
-  }
-
   mouseLeaveCard() {
-    this.popover.close()
+    this.popupPreview?.close()
   }
 
   get contentTrimmed() {

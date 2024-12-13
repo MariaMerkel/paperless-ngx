@@ -78,6 +78,8 @@ additions by HBvdG:
 this _may_ conflict if upstream adds more filters. watch out for that, amend migrations if needed.
 */
 
+export const FILTER_CUSTOM_FIELDS_QUERY = 42
+
 export const FILTER_RULE_TYPES: FilterRuleType[] = [
   {
     id: FILTER_TITLE,
@@ -387,6 +389,12 @@ export const FILTER_RULE_TYPES: FilterRuleType[] = [
     datatype: 'boolean',
     multi: false,
     default: true,
+  },
+  {
+    id: FILTER_CUSTOM_FIELDS_QUERY,
+    filtervar: 'custom_field_query',
+    datatype: 'string',
+    multi: false,
   },
 ]
 

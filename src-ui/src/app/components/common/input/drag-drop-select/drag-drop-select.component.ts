@@ -1,11 +1,11 @@
-import { Component, Input, ViewChild, forwardRef } from '@angular/core'
-import { NG_VALUE_ACCESSOR } from '@angular/forms'
-import { AbstractInputComponent } from '../abstract-input'
 import {
   CdkDragDrop,
   CdkDropList,
   moveItemInArray,
 } from '@angular/cdk/drag-drop'
+import { Component, Input, ViewChild, forwardRef } from '@angular/core'
+import { NG_VALUE_ACCESSOR } from '@angular/forms'
+import { AbstractInputComponent } from '../abstract-input'
 
 @Component({
   providers: [
@@ -38,7 +38,9 @@ export class DragDropSelectComponent extends AbstractInputComponent<string[]> {
   writeValue(newValue: string[]): void {
     super.writeValue(newValue)
     this.selectedItems =
-      newValue?.map((id) => this.items.find((i) => i.id === id)) ?? []
+      newValue
+        ?.map((id) => this.items.find((i) => i.id === id))
+        .filter((item) => item) ?? []
   }
 
   public drop(event: CdkDragDrop<string[]>) {

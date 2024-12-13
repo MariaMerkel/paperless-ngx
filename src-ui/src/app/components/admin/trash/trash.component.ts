@@ -1,49 +1,57 @@
 import { Component, OnDestroy } from '@angular/core'
+import { Router } from '@angular/router'
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap'
+import { delay, takeUntil, tap } from 'rxjs'
 import { Document } from 'src/app/data/document'
+import { SETTINGS_KEYS } from 'src/app/data/ui-settings'
+import { SettingsService } from 'src/app/services/settings.service'
 import { ToastService } from 'src/app/services/toast.service'
 import { TrashService } from 'src/app/services/trash.service'
 import { ConfirmDialogComponent } from '../../common/confirm-dialog/confirm-dialog.component'
-import { Subject, takeUntil } from 'rxjs'
-import { SettingsService } from 'src/app/services/settings.service'
-import { SETTINGS_KEYS } from 'src/app/data/ui-settings'
+import { LoadingComponentWithPermissions } from '../../loading-component/loading.component'
 
 @Component({
   selector: 'pngx-trash',
   templateUrl: './trash.component.html',
   styleUrl: './trash.component.scss',
 })
-export class TrashComponent implements OnDestroy {
+export class TrashComponent
+  extends LoadingComponentWithPermissions
+  implements OnDestroy
+{
   public documentsInTrash: Document[] = []
   public selectedDocuments: Set<number> = new Set()
   public allToggled: boolean = false
   public page: number = 1
   public totalDocuments: number
-  public isLoading: boolean = false
-  unsubscribeNotifier: Subject<void> = new Subject()
 
   constructor(
     private trashService: TrashService,
     private toastService: ToastService,
     private modalService: NgbModal,
-    private settingsService: SettingsService
+    private settingsService: SettingsService,
+    private router: Router
   ) {
+    super()
     this.reload()
   }
 
-  ngOnDestroy() {
-    this.unsubscribeNotifier.next()
-    this.unsubscribeNotifier.complete()
-  }
-
   reload() {
-    this.isLoading = true
-    this.trashService.getTrash(this.page).subscribe((r) => {
-      this.documentsInTrash = r.results
-      this.totalDocuments = r.count
-      this.isLoading = false
-      this.selectedDocuments.clear()
-    })
+    this.loading = true
+    this.trashService
+      .getTrash(this.page)
+      .pipe(
+        tap((r) => {
+          this.documentsInTrash = r.results
+          this.totalDocuments = r.count
+          this.selectedDocuments.clear()
+          this.loading = false
+        }),
+        delay(100)
+      )
+      .subscribe(() => {
+        this.show = true
+      })
   }
 
   delete(document: Document) {
@@ -110,7 +118,14 @@ export class TrashComponent implements OnDestroy {
   restore(document: Document) {
     this.trashService.restoreDocuments([document.id]).subscribe({
       next: () => {
-        this.toastService.showInfo($localize`Document restored`)
+        this.toastService.show({
+          content: $localize`Document restored`,
+          delay: 5000,
+          actionName: $localize`Open document`,
+          action: () => {
+            this.router.navigate(['documents', document.id])
+          },
+        })
         this.reload()
       },
       error: (err) => {

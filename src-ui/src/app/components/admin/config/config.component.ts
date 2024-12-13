@@ -1,25 +1,24 @@
 import { Component, OnDestroy, OnInit } from '@angular/core'
 import { AbstractControl, FormControl, FormGroup } from '@angular/forms'
+import { DirtyComponent, dirtyCheck } from '@ngneat/dirty-check-forms'
 import {
   BehaviorSubject,
   Observable,
-  Subject,
   Subscription,
   first,
   takeUntil,
 } from 'rxjs'
 import {
-  PaperlessConfigOptions,
   ConfigCategory,
   ConfigOption,
   ConfigOptionType,
   PaperlessConfig,
+  PaperlessConfigOptions,
 } from 'src/app/data/paperless-config'
 import { ConfigService } from 'src/app/services/config.service'
-import { ToastService } from 'src/app/services/toast.service'
-import { ComponentWithPermissions } from '../../with-permissions/with-permissions.component'
-import { DirtyComponent, dirtyCheck } from '@ngneat/dirty-check-forms'
 import { SettingsService } from 'src/app/services/settings.service'
+import { ToastService } from 'src/app/services/toast.service'
+import { LoadingComponentWithPermissions } from '../../loading-component/loading.component'
 
 @Component({
   selector: 'pngx-config',
@@ -27,7 +26,7 @@ import { SettingsService } from 'src/app/services/settings.service'
   styleUrl: './config.component.scss',
 })
 export class ConfigComponent
-  extends ComponentWithPermissions
+  extends LoadingComponentWithPermissions
   implements OnInit, OnDestroy, DirtyComponent
 {
   public readonly ConfigOptionType = ConfigOptionType
@@ -45,14 +44,10 @@ export class ConfigComponent
     return PaperlessConfigOptions.filter((o) => o.category === category)
   }
 
-  public loading: boolean = false
-
   initialConfig: PaperlessConfig
   store: BehaviorSubject<any>
   storeSub: Subscription
   isDirty$: Observable<boolean>
-
-  private unsubscribeNotifier: Subject<any> = new Subject()
 
   constructor(
     private configService: ConfigService,
@@ -67,7 +62,6 @@ export class ConfigComponent
   }
 
   ngOnInit(): void {
-    this.loading = true
     this.configService
       .getConfig()
       .pipe(takeUntil(this.unsubscribeNotifier))

@@ -1,12 +1,12 @@
+import { Observable } from 'rxjs'
 import { Correspondent } from './correspondent'
 import { LegalEntity } from './legalentity'
-import { Tag } from './tag'
-import { DocumentType } from './document-type'
-import { Observable } from 'rxjs'
-import { StoragePath } from './storage-path'
-import { ObjectWithPermissions } from './object-with-permissions'
-import { DocumentNote } from './document-note'
 import { CustomFieldInstance } from './custom-field-instance'
+import { DocumentNote } from './document-note'
+import { DocumentType } from './document-type'
+import { ObjectWithPermissions } from './object-with-permissions'
+import { StoragePath } from './storage-path'
+import { Tag } from './tag'
 
 export enum DisplayMode {
   TABLE = 'table',
@@ -29,6 +29,7 @@ export enum DisplayField {
   OWNER = 'owner',
   SHARED = 'shared',
   ASN = 'asn',
+  PAGE_COUNT = 'pagecount',
 }
 
 export const DEFAULT_DISPLAY_FIELDS = [
@@ -84,6 +85,10 @@ export const DEFAULT_DISPLAY_FIELDS = [
     id: DisplayField.DUE_DATE,
     name: $localize`Due date`,
   },
+  {
+    id: DisplayField.PAGE_COUNT,
+    name: $localize`Pages`,
+  },
 ]
 
 export const DEFAULT_DASHBOARD_VIEW_PAGE_SIZE = 10
@@ -105,6 +110,7 @@ export const DOCUMENT_SORT_FIELDS = [
   { field: 'modified', name: $localize`Modified` },
   { field: 'num_notes', name: $localize`Notes` },
   { field: 'owner', name: $localize`Owner` },
+  { field: 'page_count', name: $localize`Pages` },
 ]
 
 export const DOCUMENT_SORT_FIELDS_FULLTEXT = [
@@ -161,6 +167,8 @@ export interface Document extends ObjectWithPermissions {
 
   added?: Date
 
+  mime_type?: string
+
   deleted_at?: Date
 
   original_file_name?: string
@@ -181,4 +189,6 @@ export interface Document extends ObjectWithPermissions {
 
   // write-only field
   remove_inbox_tags?: boolean
+
+  page_count?: number
 }
