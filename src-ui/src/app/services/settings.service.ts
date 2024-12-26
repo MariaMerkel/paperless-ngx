@@ -647,7 +647,13 @@ export class SettingsService {
 
   completeTour() {
     const tourCompleted = this.get(SETTINGS_KEYS.TOUR_COMPLETE)
-    if (!tourCompleted) {
+    if (
+      !tourCompleted &&
+      this.permissionsService.currentUserCan(
+        PermissionAction.Change,
+        PermissionType.UISettings
+      )
+    ) {
       this.set(SETTINGS_KEYS.TOUR_COMPLETE, true)
       this.storeSettings()
         .pipe(first())

@@ -1762,6 +1762,8 @@ class UiSettingsView(GenericAPIView):
                     manager.get_outlook_authorization_url()
                 )
 
+        ui_settings["email_enabled"] = settings.EMAIL_ENABLED
+
         user_resp = {
             "id": user.id,
             "username": user.username,
