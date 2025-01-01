@@ -3,17 +3,14 @@ import { Injectable } from '@angular/core'
 import { Observable } from 'rxjs'
 import { map, tap } from 'rxjs/operators'
 import { AuditLogEntry } from 'src/app/data/auditlog-entry'
+import { CustomField } from 'src/app/data/custom-field'
 import {
   DOCUMENT_SORT_FIELDS,
   DOCUMENT_SORT_FIELDS_FULLTEXT,
   Document,
 } from 'src/app/data/document'
 import { DocumentMetadata } from 'src/app/data/document-metadata'
-import { AbstractPaperlessService } from './abstract-paperless-service'
 import { Results } from 'src/app/data/results'
-import { CorrespondentService } from './correspondent.service'
-import { LegalEntityService } from './legalentity.service'
-import { DocumentTypeService } from './document-type.service'
 import { TagService } from './tag.service'
 import { DocumentSuggestions } from 'src/app/data/document-suggestions'
 import { FilterRule } from 'src/app/data/filter-rule'
@@ -25,6 +22,11 @@ import {
   PermissionsService,
 } from '../permissions.service'
 import { SettingsService } from '../settings.service'
+import { AbstractPaperlessService } from './abstract-paperless-service'
+import { CorrespondentService } from './correspondent.service'
+import { LegalEntityService } from './legalentity.service'
+import { CustomFieldsService } from './custom-fields.service'
+import { DocumentTypeService } from './document-type.service'
 import { StoragePathService } from './storage-path.service'
 
 export interface SelectionDataItem {
@@ -57,6 +59,8 @@ export class DocumentService extends AbstractPaperlessService<Document> {
     return this._sortFieldsFullText
   }
 
+  private customFields: CustomField[] = []
+
   constructor(
     http: HttpClient,
     private correspondentService: CorrespondentService,
@@ -65,14 +69,40 @@ export class DocumentService extends AbstractPaperlessService<Document> {
     private tagService: TagService,
     private storagePathService: StoragePathService,
     private permissionsService: PermissionsService,
-    private settingsService: SettingsService
+    private settingsService: SettingsService,
+    private customFieldService: CustomFieldsService
   ) {
     super(http, 'documents')
+    if (
+      this.permissionsService.currentUserCan(
+        PermissionAction.View,
+        PermissionType.CustomField
+      )
+    ) {
+      this.customFieldService.listAll().subscribe((fields) => {
+        this.customFields = fields.results
+        this.setupSortFields()
+      })
+    }
+
     this.setupSortFields()
   }
 
   private setupSortFields() {
     this._sortFields = [...DOCUMENT_SORT_FIELDS]
+    if (
+      this.permissionsService.currentUserCan(
+        PermissionAction.View,
+        PermissionType.CustomField
+      )
+    ) {
+      this.customFields.forEach((field) => {
+        this._sortFields.push({
+          field: `custom_field_${field.id}`,
+          name: field.name,
+        })
+      })
+    }
     let excludes = []
     if (
       !this.permissionsService.currentUserCan(
