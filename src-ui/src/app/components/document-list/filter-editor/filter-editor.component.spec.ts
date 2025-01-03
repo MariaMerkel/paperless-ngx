@@ -229,7 +229,15 @@ describe('FilterEditorComponent', () => {
 
   beforeEach(fakeAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [
+      imports: [
+        RouterModule,
+        NgbDropdownModule,
+        FormsModule,
+        ReactiveFormsModule,
+        NgbDatepickerModule,
+        NgxBootstrapIconsModule.pick(allIcons),
+        NgbTypeaheadModule,
+        NgSelectModule,
         FilterEditorComponent,
         FilterableDropdownComponent,
         PermissionsFilterDropdownComponent,
@@ -240,16 +248,6 @@ describe('FilterEditorComponent', () => {
         DatesDropdownComponent,
         CustomDatePipe,
         CustomFieldsQueryDropdownComponent,
-      ],
-      imports: [
-        RouterModule,
-        NgbDropdownModule,
-        FormsModule,
-        ReactiveFormsModule,
-        NgbDatepickerModule,
-        NgxBootstrapIconsModule.pick(allIcons),
-        NgbTypeaheadModule,
-        NgSelectModule,
       ],
       providers: [
         FilterPipe,
