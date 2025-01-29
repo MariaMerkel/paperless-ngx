@@ -1,7 +1,16 @@
+import { NgClass, TitleCasePipe } from '@angular/common'
 import { Component } from '@angular/core'
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap'
-import { FILTER_HAS_LEGAL_ENTITY_ANY } from 'src/app/data/filter-rule-type'
+import { FormsModule, ReactiveFormsModule } from '@angular/forms'
+import {
+  NgbDropdownModule,
+  NgbModal,
+  NgbPaginationModule,
+} from '@ng-bootstrap/ng-bootstrap'
+import { NgxBootstrapIconsModule } from 'ngx-bootstrap-icons'
 import { LegalEntity } from 'src/app/data/legalentity'
+import { FILTER_HAS_LEGAL_ENTITY_ANY } from 'src/app/data/filter-rule-type'
+import { IfPermissionsDirective } from 'src/app/directives/if-permissions.directive'
+import { SortableDirective } from 'src/app/directives/sortable.directive'
 import { CustomDatePipe } from 'src/app/pipes/custom-date.pipe'
 import { DocumentListViewService } from 'src/app/services/document-list-view.service'
 import {
@@ -11,6 +20,7 @@ import {
 import { LegalEntityService } from 'src/app/services/rest/legalentity.service'
 import { ToastService } from 'src/app/services/toast.service'
 import { LegalEntityEditDialogComponent } from '../../common/edit-dialog/legalentity-edit-dialog/legalentity-edit-dialog.component'
+import { PageHeaderComponent } from '../../common/page-header/page-header.component'
 import { ManagementListComponent } from '../management-list/management-list.component'
 
 @Component({
@@ -18,6 +28,18 @@ import { ManagementListComponent } from '../management-list/management-list.comp
   templateUrl: './../management-list/management-list.component.html',
   styleUrls: ['./../management-list/management-list.component.scss'],
   providers: [{ provide: CustomDatePipe }],
+  imports: [
+    SortableDirective,
+    IfPermissionsDirective,
+    PageHeaderComponent,
+    TitleCasePipe,
+    FormsModule,
+    ReactiveFormsModule,
+    NgClass,
+    NgbDropdownModule,
+    NgbPaginationModule,
+    NgxBootstrapIconsModule,
+  ],
 })
 export class LegalEntityListComponent extends ManagementListComponent<LegalEntity> {
   constructor(
@@ -51,7 +73,7 @@ export class LegalEntityListComponent extends ManagementListComponent<LegalEntit
                 date = new Date(
                   c.last_use_legal_entity
                     ?.toString()
-                    .replace(/-(\d\d):\d\d:\d\d/gm, `-$1:00`)
+                    .replace(/([-+])(\d\d):\d\d:\d\d/gm, `$1$2:00`)
                 )
               }
               return this.datePipe.transform(date)
@@ -61,6 +83,10 @@ export class LegalEntityListComponent extends ManagementListComponent<LegalEntit
         },
       ]
     )
+  }
+
+  public reloadData(): void {
+    super.reloadData({ last_use_legal_entity: true })
   }
 
   getDeleteMessage(object: LegalEntity) {
